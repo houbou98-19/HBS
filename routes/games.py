@@ -94,13 +94,13 @@ def handle_menu(params):
     import subprocess
     import os
     
-    # Kill any existing retroarch
-    os.system("pkill -9 retroarch 2>/dev/null || true")
+    launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
     
-    # Launch retroarch in background
-    subprocess.Popen(["retroarch"])
-    
-    return {"status": "launching", "app": "retroarch"}, 200
+    try:
+        subprocess.Popen([launcher_path, "menu"])
+        return {"status": "launching", "app": "retroarch"}, 200
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 ROUTES = {
     ("GET", "/api/games"): handle_get_games,
