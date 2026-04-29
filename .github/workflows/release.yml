@@ -29,31 +29,19 @@ jobs:
           # Fetch all tags from remote
           git fetch --tags
           
-          # Debug: Show all tags
-          echo "All tags:"
-          git tag -l 'v*' | sort
-          
           LATEST=$(python3 << 'PYTHON'
           import subprocess
-          tags = subprocess.check_output(['git', 'tag', '-l', 'v*']).decode().strip().split('\n')
-          print("Raw tags:", tags)
+          tags = subprocess.check_output(['git', 'tag', '-l']).decode().strip().split('\n')
           tags = [t.lstrip('v') for t in tags if t]
-          print("Stripped tags:", tags)
+          tags = [t for t in tags if t and t[0].isdigit()]
           tags.sort(key=lambda x: tuple(map(int, x.split('.'))))
-          print("Sorted tags:", tags)
           result = tags[-1] if tags else '1.0.0'
-          print("Selected:", result)
           print(result)
           PYTHON
           )
-
-          echo "LATEST TAG = ${LATEST}"
-
+          
           # Parse version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
-          echo "Parsed: MAJOR=$MAJOR MINOR=$MINOR PATCH=$PATCH"
-          
-          # Rest of code...
           
           # Bump version based on input
           case "${{ github.event.inputs.bump }}" in
@@ -79,8 +67,13 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git tag ${{ steps.version.outputs.NEW_VERSION }}
-          git push origin ${{ steps.version.outputs.NEW_VERSION }}
+          
+          TAG="${{ steps.version.outputs.NEW_VERSION }}"
+          # Ensure no 'v' prefix
+          TAG=${TAG#v}
+          
+          git tag "$TAG"
+          git push origin "$TAG"
       
       - name: Set version in config
         run: |
