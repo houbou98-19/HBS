@@ -1,3 +1,4 @@
+"""
 HB System - Configuration Management
 """
 import json
