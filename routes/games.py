@@ -96,10 +96,16 @@ def handle_menu(params):
     
     launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
     
+    print(f"DEBUG: launcher_path = {launcher_path}")
+    print(f"DEBUG: exists = {os.path.exists(launcher_path)}")
+    print(f"DEBUG: executable = {os.access(launcher_path, os.X_OK)}")
+    
     try:
-        subprocess.Popen([launcher_path, "menu"])
+        result = subprocess.Popen([launcher_path, "menu"])
+        print(f"DEBUG: Popen result = {result}")
         return {"status": "launching", "app": "retroarch"}, 200
     except Exception as e:
+        print(f"DEBUG: Exception = {e}")
         return {"error": str(e)}, 500
 
 ROUTES = {
