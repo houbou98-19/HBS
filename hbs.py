@@ -10,9 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 # Configuration
 CONFIG_DIR = os.path.expanduser("~/.hbs")
-ROMS_ROOT = os.path.expanduser(os.getenv("HBS_ROMS_ROOT", "~/roms"))  # Set via HBS_ROMS_ROOT env var
 GAMES_FILE = os.path.join(CONFIG_DIR, "games.json")
-PORT = 5000
 
 PLATFORM_DIRS = {
     "NES": "nes",
@@ -25,6 +23,29 @@ PLATFORM_DIRS = {
     "WII": "wii",
     "Switch": "switch"
 }
+
+def load_config():
+    """Load config from config.json in script directory"""
+    try:
+        config_file = os.path.join(os.path.dirname(__file__), "config.json")
+        with open(config_file) as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Warning: Could not load config.json: {e}")
+        return {
+            "version": "unknown",
+            "roms_root": os.path.expanduser("~/roms"),
+            "port": 5000,
+            "display_name": "HB SYSTEM"
+        }
+
+CONFIG = load_config()
+ROMS_ROOT = CONFIG.get("roms_root", os.path.expanduser("~/roms"))
+PORT = CONFIG.get("port", 5000)
+
+def get_version():
+    """Get version from config"""
+    return CONFIG.get("version", "unknown")
 
 def ensure_config():
     """Create config directory and default games.json if needed"""
@@ -86,7 +107,7 @@ class HBSHandler(BaseHTTPRequestHandler):
         elif path == "/api/status":
             self.send_json(200, {
                 "status": "online",
-                "version": "1.0.0",
+                "version": get_version(),
                 "games_count": len(load_games())
             })
         
