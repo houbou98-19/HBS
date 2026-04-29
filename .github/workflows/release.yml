@@ -81,11 +81,16 @@ jobs:
       - name: Create package directory
         run: |
           mkdir -p hbs-${{ steps.version.outputs.VERSION }}
-          cp hbs.py hbs-${{ steps.version.outputs.VERSION }}/
-          cp splash.html hbs-${{ steps.version.outputs.VERSION }}/
-          cp add.html hbs-${{ steps.version.outputs.VERSION }}/
-          cp config.json hbs-${{ steps.version.outputs.VERSION }}/
-          cp install.sh hbs-${{ steps.version.outputs.VERSION }}/
+          
+          # Copy all files except excluded ones
+          cp -r hbs/* hbs-${{ steps.version.outputs.VERSION }}/ || true
+          
+          # Remove excluded files
+          rm -f hbs-${{ steps.version.outputs.VERSION }}/.gitignore
+          rm -f hbs-${{ steps.version.outputs.VERSION }}/LICENSE
+          rm -f hbs-${{ steps.version.outputs.VERSION }}/README.md
+          rm -rf hbs-${{ steps.version.outputs.VERSION }}/.github
+          
           chmod +x hbs-${{ steps.version.outputs.VERSION }}/install.sh
       
       - name: Create tarball

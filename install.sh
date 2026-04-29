@@ -14,18 +14,12 @@ echo "📦 Installing to $INSTALL_DIR"
 # Create install directory if needed
 mkdir -p "$INSTALL_DIR"
 
-# Copy files
+# Copy all files from package
 echo "📋 Copying files..."
-cp "$SCRIPT_DIR/hbs.py" "$INSTALL_DIR/"
-cp "$SCRIPT_DIR/splash.html" "$INSTALL_DIR/"
-cp "$SCRIPT_DIR/add.html" "$INSTALL_DIR/"
-cp "$SCRIPT_DIR/config.json" "$INSTALL_DIR/"
+cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
 
-# Set permissions
-chmod 755 "$INSTALL_DIR/hbs.py"
-chmod 644 "$INSTALL_DIR/splash.html"
-chmod 644 "$INSTALL_DIR/add.html"
-chmod 644 "$INSTALL_DIR/config.json"
+# Set permissions for entire directory
+chmod -R 755 "$INSTALL_DIR"
 
 # Restart service
 echo "🔄 Restarting HBS service..."
