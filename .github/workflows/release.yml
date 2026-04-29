@@ -1,0 +1,38 @@
+name: Build Release Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Create package directory
+        run: |
+          mkdir -p hbs-${{ steps.version.outputs.VERSION }}
+          cp hbs.py hbs-${{ steps.version.outputs.VERSION }}/
+          cp splash.html hbs-${{ steps.version.outputs.VERSION }}/
+          cp add.html hbs-${{ steps.version.outputs.VERSION }}/
+          cp hbs.service hbs-${{ steps.version.outputs.VERSION }}/
+          cp install.sh hbs-${{ steps.version.outputs.VERSION }}/
+          chmod +x hbs-${{ steps.version.outputs.VERSION }}/install.sh
+      
+      - name: Create tarball
+        run: tar -czf hbs-${{ steps.version.outputs.VERSION }}.tar.gz hbs-${{ steps.version.outputs.VERSION }}/
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: hbs-${{ steps.version.outputs.VERSION }}.tar.gz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
