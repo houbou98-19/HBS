@@ -10,7 +10,7 @@ from urllib.parse import urlparse, parse_qs
 
 # Configuration
 CONFIG_DIR = os.path.expanduser("~/.hbs")
-ROMS_ROOT = os.path.expanduser("F:\hbs roms backup")  # Change this path as needed
+ROMS_ROOT = os.path.expanduser(os.getenv("HBS_ROMS_ROOT", "~/roms"))  # Set via HBS_ROMS_ROOT env var
 GAMES_FILE = os.path.join(CONFIG_DIR, "games.json")
 PORT = 5000
 
