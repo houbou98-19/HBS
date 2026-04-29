@@ -95,6 +95,13 @@ class HBSHandler(BaseHTTPRequestHandler):
             add_path = os.path.join(os.path.dirname(__file__), "add.html")
             self.send_html(200, add_path)
 
+        elif path == "/api/games":
+            games = load_games()
+            self.send_json(200, {
+                "games": games,
+                "count": len(games)
+            })
+
         elif path == "/api/roms":
             platform = params.get("platform", [None])[0]
             if not platform:
