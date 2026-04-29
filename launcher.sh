@@ -9,6 +9,8 @@ export MESA_GLSL_VERSION_OVERRIDE=430
 CORE="$1"
 ROM="$2"
 
+CORES_DIR="$HOME/.config/retroarch/cores"
+
 # Menu mode - no ROM
 if [ "$CORE" = "menu" ]; then
   dbus-launch retroarch --fullscreen 2>/tmp/ra.log
@@ -17,5 +19,6 @@ elif [[ "$CORE" == *.AppImage ]]; then
   dbus-launch "$CORE" "$ROM" 2>/tmp/eden.log
 else
   # RetroArch for everything else
-  dbus-launch retroarch --fullscreen --verbose -L "$CORE" "$ROM" 2>/tmp/ra.log
+  CORE_PATH="$CORES_DIR/${CORE}"
+  dbus-launch retroarch --fullscreen --verbose -L "$CORE_PATH" "$ROM" 2>/tmp/ra.log
 fi
