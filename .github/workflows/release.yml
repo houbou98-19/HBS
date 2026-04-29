@@ -30,8 +30,11 @@ jobs:
           
           # Get latest tag or start at v1.0.0
           LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "latest = ${LATEST}"
           LATEST=${LATEST#v}
           
+          echo "latest = ${LATEST}"
+
           # Parse version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
           
