@@ -94,12 +94,18 @@ def handle_menu(params):
     import subprocess
     import os
     
+    # From routes/games.py -> go up one level to hbs root
     launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
+    
+    print(f"DEBUG: Launcher path: {launcher_path}")
+    print(f"DEBUG: Exists: {os.path.exists(launcher_path)}")
+    print(f"DEBUG: Absolute path: {os.path.abspath(launcher_path)}")
     
     try:
         subprocess.Popen([launcher_path, "menu"])
         return {"status": "launching", "app": "retroarch"}, 200
     except Exception as e:
+        print(f"DEBUG: Error: {e}")
         return {"error": str(e)}, 500
 
 ROUTES = {
