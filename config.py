@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 HB System - Configuration Management
 """
 import json
@@ -36,7 +34,7 @@ def load_config():
         }
 
 CONFIG = load_config()
-ROMS_ROOT = CONFIG.get("roms_root", os.path.expanduser("~/roms"))
+ROMS_ROOT = os.environ.get("HBS_ROMS_ROOT") or CONFIG.get("roms_root", os.path.expanduser("~/roms"))
 PORT = CONFIG.get("port", 5000)
 
 def get_version():
