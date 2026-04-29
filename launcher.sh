@@ -2,6 +2,7 @@
 
 export DISPLAY=:0
 export XAUTHORITY=/home/hobo/.Xauthority
+export XDG_RUNTIME_DIR=/run/user/1000
 export MESA_GL_VERSION_OVERRIDE=4.3COMPAT
 export MESA_GLSL_VERSION_OVERRIDE=430
 
