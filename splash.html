@@ -65,7 +65,7 @@
         }
 
         .status.online {
-            color: #95ff44;
+            color: #00ff88;
             animation: blink 1s infinite;
         }
         
@@ -184,15 +184,15 @@
                 const data = await res.json();
                 
                 if (data.status === 'online') {
-                    document.getElementById('status').className = 'status';
-                    document.getElementById('status').textContent = '[ system online ]';
-                } else {
                     document.getElementById('status').className = 'status online';
                     document.getElementById('status').textContent = '[ scan a cartridge to play ]';
+                } else {
+                    document.getElementById('status').className = 'status offline';
+                    document.getElementById('status').textContent = '[ not online ]';
                 }
             } catch (e) {
                 document.getElementById('status').className = 'status offline';
-                document.getElementById('status').textContent = '[ scan a cartridge to play ]';
+                document.getElementById('status').textContent = '[ offline ]';
             }
         }
         
