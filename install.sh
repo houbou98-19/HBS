@@ -11,6 +11,10 @@ SERVICE_NAME="hbs.service"
 
 echo "📦 Installing to $INSTALL_DIR"
 
+# Install dependencies
+echo "📦 Installing dependencies..."
+sudo apt-get install -y retroarch dbus-x11
+
 # Create install directory if needed
 mkdir -p "$INSTALL_DIR"
 
