@@ -1,0 +1,14 @@
+[Unit]
+Description=HB System - Retro Gaming Launcher
+After=network.target
+
+[Service]
+Type=simple
+User=hobo
+WorkingDirectory=/home/hobo/hbs
+ExecStart=/usr/bin/python3 /home/hobo/hbs/hbs.py
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
