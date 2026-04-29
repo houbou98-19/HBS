@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=hobo
 WorkingDirectory=/home/hobo/hbs
-Environment="HBS_ROMS_ROOT=/media/raid-1/roms"
+Environment="HBS_ROMS_ROOT=/mnt/hbs-roms"
 ExecStart=/usr/bin/python3 /home/hobo/hbs/hbs.py
 Restart=on-failure
 RestartSec=10
