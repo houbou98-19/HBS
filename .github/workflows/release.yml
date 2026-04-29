@@ -84,6 +84,7 @@ jobs:
           cp hbs.py hbs-${{ steps.version.outputs.VERSION }}/
           cp splash.html hbs-${{ steps.version.outputs.VERSION }}/
           cp add.html hbs-${{ steps.version.outputs.VERSION }}/
+          cp config.json hbs-${{ steps.version.outputs.VERSION }}/
           cp install.sh hbs-${{ steps.version.outputs.VERSION }}/
           chmod +x hbs-${{ steps.version.outputs.VERSION }}/install.sh
       
