@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Game - HB System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a15 0%, #1a0f2e 100%);
+            color: #e0e0e0;
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #00ff88;
+            text-align: center;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ff88;
+        }
+        
+        .subtitle {
+            font-size: 10px;
+            color: #444;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 3px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        input, select {
+            width: 100%;
+            background: #0d0d1a;
+            border: 1px solid #1a1a2e;
+            color: #e0e0e0;
+            padding: 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00ff88;
+            box-shadow: 0 0 10px #00ff8844;
+        }
+        
+        .file-list {
+            background: #0d0d1a;
+            border: 1px solid #1a1a2e;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            padding: 10px;
+            border-bottom: 1px solid #1a1a2e;
+            cursor: pointer;
+            font-size: 9px;
+            color: #888;
+            transition: all 0.2s;
+        }
+        
+        .file-item:hover {
+            background: #1a1a3e;
+            color: #00ff88;
+        }
+        
+        .file-item.selected {
+            background: #00ff8811;
+            color: #00ff88;
+            border-left: 3px solid #00ff88;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .rom-path-display {
+            background: #0d0d1a;
+            border: 1px solid #1a1a2e;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 9px;
+            color: #666;
+            word-break: break-all;
+            min-height: 30px;
+        }
+        
+        button[type="submit"] {
+            width: 100%;
+            background: #00ff8811;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 15px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 30px;
+            transition: all 0.3s;
+        }
+        
+        button[type="submit"]:hover {
+            background: #00ff8822;
+            box-shadow: 0 0 20px #00ff88;
+        }
+        
+        button[type="submit"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 10px;
+            border: 1px solid;
+            display: none;
+        }
+        
+        .message.success {
+            background: #00ff8811;
+            border-color: #00ff8844;
+            color: #00ff88;
+        }
+        
+        .message.error {
+            background: #ff444411;
+            border-color: #ff444444;
+            color: #ff4444;
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            font-size: 9px;
+            color: #00aaff;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ADD GAME</h1>
+        <div class="subtitle">// HB SYSTEM //</div>
+        
+        <form id="gameForm">
+            <div class="form-group">
+                <label for="name">Game Name</label>
+                <input type="text" id="name" placeholder="e.g., Pokemon Emerald" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="id">Game ID / NFC Tag</label>
+                <input type="text" id="id" placeholder="e.g., pokemon-emerald" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="platform">Platform</label>
+                <select id="platform" onchange="loadRomFiles()" required>
+                    <option value="">-- SELECT PLATFORM --</option>
+                    <option value="NES">NES</option>
+                    <option value="SNES">SNES</option>
+                    <option value="N64">N64</option>
+                    <option value="GBA">GBA</option>
+                    <option value="GBC">GBC</option>
+                    <option value="NDS">NDS</option>
+                    <option value="3DS">3DS</option>
+                    <option value="WII">WII</option>
+                    <option value="Switch">Switch</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="romSection" style="display: none;">
+                <label for="romList">Select ROM File</label>
+                <div class="file-list" id="romList"></div>
+                <div class="rom-path-display" id="romPath">No file selected</div>
+            </div>
+            
+            <button type="submit" id="submitBtn">[ ADD GAME ]</button>
+        </form>
+        
+        <div class="message" id="message"></div>
+        
+        <a href="/" class="back-link">← BACK TO ARCADE</a>
+    </div>
+    
+    <script>
+        let selectedRom = null;
+        let romDirectory = null;
+        
+        async function loadRomFiles() {
+            const platform = document.getElementById('platform').value;
+            const romSection = document.getElementById('romSection');
+            const romList = document.getElementById('romList');
+            
+            if (!platform) {
+                romSection.style.display = 'none';
+                return;
+            }
+            
+            romList.innerHTML = '<div class="file-item loading">Loading...</div>';
+            romSection.style.display = 'block';
+            
+            try {
+                const res = await fetch(`/api/roms?platform=${platform}`);
+                const data = await res.json();
+                
+                romDirectory = data.directory;
+                
+                if (!data.files || data.files.length === 0) {
+                    romList.innerHTML = '<div class="file-item">No files found</div>';
+                    selectedRom = null;
+                    document.getElementById('romPath').textContent = 'No files available';
+                    return;
+                }
+                
+                romList.innerHTML = data.files.map(file => `
+                    <div class="file-item" onclick="selectRom('${file}', '${data.directory}')">
+                        ${file}
+                    </div>
+                `).join('');
+            } catch (e) {
+                romList.innerHTML = '<div class="file-item">Error loading files</div>';
+                document.getElementById('romPath').textContent = 'Error loading files';
+            }
+        }
+        
+        function selectRom(filename, directory) {
+            selectedRom = `${directory}/${filename}`;
+            
+            // Update selected state
+            document.querySelectorAll('.file-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.textContent.trim() === filename) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // Update path display
+            document.getElementById('romPath').textContent = selectedRom;
+        }
+        
+        document.getElementById('gameForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedRom) {
+                const msg = document.getElementById('message');
+                msg.className = 'message error';
+                msg.textContent = '✗ SELECT A ROM FILE';
+                msg.style.display = 'block';
+                return;
+            }
+            
+            const data = {
+                id: document.getElementById('id').value,
+                name: document.getElementById('name').value,
+                platform: document.getElementById('platform').value,
+                rom: selectedRom
+            };
+            
+            try {
+                const res = await fetch('/api/games', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await res.json();
+                const msg = document.getElementById('message');
+                msg.style.display = 'block';
+                
+                if (res.ok) {
+                    msg.className = 'message success';
+                    msg.textContent = `✓ GAME ADDED: ${data.name}`;
+                    document.getElementById('gameForm').reset();
+                    selectedRom = null;
+                    document.getElementById('romPath').textContent = 'No file selected';
+                } else {
+                    msg.className = 'message error';
+                    msg.textContent = `✗ ERROR: ${result.error}`;
+                }
+            } catch (e) {
+                const msg = document.getElementById('message');
+                msg.className = 'message error';
+                msg.textContent = `✗ ERROR: ${e.message}`;
+                msg.style.display = 'block';
+            }
+            loadRomFiles()
+        });
+    </script>
+</body>
+</html>
