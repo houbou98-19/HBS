@@ -1,20 +1,63 @@
 name: Build Release Package
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
-      - name: Get version from tag
+      - name: Get latest tag and bump version
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          # Get latest tag or start at v1.0.0
+          LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          LATEST=${LATEST#v}
+          
+          # Parse version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
+          
+          # Bump version based on input
+          case "${{ github.event.inputs.bump }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            *)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "VERSION=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
+      
+      - name: Create git tag
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.version.outputs.NEW_VERSION }}
+          git push origin ${{ steps.version.outputs.NEW_VERSION }}
       
       - name: Create package directory
         run: |
@@ -32,6 +75,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.version.outputs.NEW_VERSION }}
           files: hbs-${{ steps.version.outputs.VERSION }}.tar.gz
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
