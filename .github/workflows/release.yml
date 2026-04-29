@@ -82,8 +82,8 @@ jobs:
         run: |
           mkdir -p hbs-${{ steps.version.outputs.VERSION }}
           
-          # Copy all files except excluded ones
-          cp -r hbs/* hbs-${{ steps.version.outputs.VERSION }}/ || true
+          # Copy all files from root (excluding specific ones)
+          cp -r * hbs-${{ steps.version.outputs.VERSION }}/ 2>/dev/null || true
           
           # Remove excluded files
           rm -f hbs-${{ steps.version.outputs.VERSION }}/.gitignore
