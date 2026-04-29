@@ -29,9 +29,14 @@ jobs:
           # Fetch all tags from remote
           git fetch --tags
           
-          # Get latest tag or start at v1.0.0
-          LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
-          LATEST=${LATEST#v}
+          LATEST=$(python3 << 'PYTHON'
+          import subprocess
+          tags = subprocess.check_output(['git', 'tag', '-l', 'v*']).decode().strip().split('\n')
+          tags = [t.lstrip('v') for t in tags if t]
+          tags.sort(key=lambda x: tuple(map(int, x.split('.'))))
+          print(tags[-1] if tags else '1.0.0')
+          PYTHON
+          )
 
           # Parse version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
