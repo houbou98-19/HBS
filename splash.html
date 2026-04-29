@@ -263,9 +263,20 @@
             if (h > 0) return `${h}h ${m}m`;
             return `${m}m`;
         }
+
+        async function loadVersion() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                document.getElementById('version').textContent = 'v' + data.version;
+            } catch (e) {
+                console.error('Error loading version:', e);
+            }
+        }
         
         // Load on page load
         loadRecentlyPlayed();
+        loadVersion();
     </script>
 </body>
 </html>
