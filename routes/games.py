@@ -4,6 +4,7 @@ Game management, ROM listing, and launching
 """
 import os
 import json
+from datetime import datetime
 from config import ROMS_ROOT, PLATFORM_DIRS, load_games, save_games, GAMES_FILE
 
 def handle_get_games(params):
@@ -74,6 +75,8 @@ def handle_get_roms(params):
 
 def handle_launch_game(params):
     """GET /launch?id=GAME_ID - Launch a game"""
+    import subprocess
+    
     game_id = params.get("id", [None])[0]
     
     if not game_id:
@@ -85,14 +88,54 @@ def handle_launch_game(params):
     if not game:
         return {"error": "Game not found"}, 404
     
-    # TODO: Implement actual game launching via launcher.sh
-    # For now, just return success
-    return {"status": "launching", "game": game["name"]}, 200
+    # Platform to core mapping
+    PLATFORM_CORES = {
+        "NES": "nestopia_libretro.so",
+        "SNES": "snes9x_libretro.so",
+        "N64": "mupen64plus_next_libretro.so",
+        "GBA": "mgba_libretro.so",
+        "GBC": "mgba_libretro.so",
+        "NDS": "desmume_libretro.so",
+        "3DS": "citra_libretro.so",
+        "WII": "dolphin_libretro.so",
+        "Switch": "eden"
+    }
+    
+    platform = game.get("platform")
+    rom_path = game.get("rom")
+    
+    if not platform or not rom_path:
+        return {"error": "Invalid game data"}, 400
+    
+    if platform not in PLATFORM_CORES:
+        return {"error": f"Unsupported platform: {platform}"}, 400
+    
+    if not os.path.exists(rom_path):
+        return {"error": f"ROM file not found: {rom_path}"}, 404
+    
+    core = PLATFORM_CORES[platform]
+    launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
+    
+    try:
+        # Launch the game via launcher.sh
+        subprocess.Popen([launcher_path, core, rom_path])
+        
+        # Update last_played and playtime
+        for g in games:
+            if g["id"] == game_id:
+                g["last_played"] = datetime.now().isoformat()
+                g["playtime"] = g.get("playtime", 0) + 1
+                break
+        
+        save_games(games)
+        
+        return {"status": "launching", "game": game["name"], "platform": platform}, 200
+    except Exception as e:
+        return {"error": f"Failed to launch: {str(e)}"}, 500
 
 def handle_menu(params):
     """GET /menu - Launch RetroArch menu"""
     import subprocess
-    import os
     
     launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
     
