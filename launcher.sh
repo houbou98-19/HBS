@@ -8,7 +8,8 @@ case "$COMMAND" in
     # Launch RetroArch menu
     pkill -9 retroarch 2>/dev/null || true
     export DISPLAY=:0
-    retroarch &
+    export XAUTHORITY=/home/hobo/.Xauthority
+    /usr/bin/retroarch &
     ;;
   *)
     echo "Unknown command: $COMMAND"
