@@ -89,42 +89,60 @@
         }
         
         .game-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             margin-bottom: 40px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: left;
         }
         
         .game-item {
-            background: #0d0d1a;
-            border: 1px solid #00ff8844;
-            padding: 15px;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s;
-            line-height: 1.6;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0;
+            border: none;
+            background: none;
         }
         
-        .game-item:hover {
-            border-color: #00ff88;
-            box-shadow: 0 0 10px #00ff8844;
+        .game-info {
+            display: flex;
+            gap: 15px;
+            align-items: baseline;
+            flex: 1;
         }
         
         .game-name {
-            font-size: 12px;
-            color: #00ff88;
-            margin-bottom: 8px;
+            color: #92f5c7;
             font-weight: bold;
+            font-size: 35px;
         }
         
         .game-platform {
             color: #666;
-            margin-bottom: 5px;
+            font-size: 13px;
         }
         
-        .game-playtime {
+        .game-time-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        
+        .playtime {
             color: #00aaff;
-            font-size: 10px;
+            font-size: 16px;
+        }
+        
+        .last-played {
+            color: #00aaff;
+            font-size: 12px;
         }
         
         .empty-state {
@@ -152,9 +170,6 @@
             .subtitle {
                 font-size: 14px;
             }
-            .game-list {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
@@ -180,17 +195,63 @@
     <script>
         async function loadRecentlyPlayed() {
             try {
-                const res = await fetch('/api/status');
-                const data = await res.json();
+                // Check status
+                const statusRes = await fetch('/api/status');
+                const statusData = await statusRes.json();
                 
-                if (data.status === 'online') {
+                if (statusData.status === 'online') {
                     document.getElementById('status').className = 'status online';
                     document.getElementById('status').textContent = '[ scan a cartridge to play ]';
                 } else {
                     document.getElementById('status').className = 'status offline';
                     document.getElementById('status').textContent = '[ not online ]';
                 }
+                
+                // Load games
+                const gamesRes = await fetch('/api/games');
+                const gamesData = await gamesRes.json();
+                const games = gamesData.games || [];
+                
+                // Filter games that have been played (playtime > 0 or last_played is set)
+                const playedGames = games.filter(g => g.playtime > 0 || g.last_played);
+                
+                // Sort by last_played (newest first)
+                playedGames.sort((a, b) => {
+                    const dateA = a.last_played ? new Date(a.last_played) : new Date(0);
+                    const dateB = b.last_played ? new Date(b.last_played) : new Date(0);
+                    return dateB - dateA;
+                });
+                
+                // Get top 5
+                const topGames = playedGames.slice(0, 5);
+                
+                // Render games
+                const gameList = document.getElementById('gameList');
+                if (topGames.length === 0) {
+                    gameList.innerHTML = '<div class="empty-state">No games played yet</div>';
+                } else {
+                    gameList.innerHTML = topGames.map(game => {
+                        const lastPlayedText = game.last_played 
+                            ? new Date(game.last_played).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                            : 'Never';
+                        return `
+                            <div class="game-item">
+                                <div class="game-info">
+                                    <div class="game-header">
+                                        <span class="game-name">${game.name}</span>
+                                        <span class="game-platform">${game.platform}</span>
+                                    </div>
+                                </div>
+                                <div class="game-time-info">
+                                    <div class="playtime">⏱ ${formatPlaytime(game.playtime)}</div>
+                                    <div class="last-played">${lastPlayedText}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
             } catch (e) {
+                console.error('Error loading games:', e);
                 document.getElementById('status').className = 'status offline';
                 document.getElementById('status').textContent = '[ offline ]';
             }
@@ -205,8 +266,6 @@
         
         // Load on page load
         loadRecentlyPlayed();
-        // Refresh every 5 seconds
-        setInterval(loadRecentlyPlayed, 5000);
     </script>
 </body>
 </html>
