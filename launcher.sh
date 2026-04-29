@@ -11,6 +11,11 @@ ROM="$2"
 
 CORES_DIR="$HOME/.config/retroarch/cores"
 
+# Kill all running emulators first
+pkill -9 retroarch
+pkill -9 -f '/bin/eden'
+sleep 1
+
 # Menu mode - no ROM
 if [ "$CORE" = "menu" ]; then
   dbus-launch retroarch --fullscreen 2>/tmp/ra.log
