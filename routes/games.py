@@ -89,9 +89,23 @@ def handle_launch_game(params):
     # For now, just return success
     return {"status": "launching", "game": game["name"]}, 200
 
+def handle_menu(params):
+    """GET /menu - Launch RetroArch menu"""
+    import subprocess
+    import os
+    
+    # Kill any existing retroarch
+    os.system("pkill -9 retroarch 2>/dev/null || true")
+    
+    # Launch retroarch in background
+    subprocess.Popen(["retroarch"])
+    
+    return {"status": "launching", "app": "retroarch"}, 200
+
 ROUTES = {
     ("GET", "/api/games"): handle_get_games,
     ("POST", "/api/games"): handle_post_games,
     ("GET", "/api/roms"): handle_get_roms,
     ("GET", "/launch"): handle_launch_game,
+    ("GET", "/menu"): handle_menu,
 }
