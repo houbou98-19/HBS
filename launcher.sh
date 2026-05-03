@@ -30,5 +30,5 @@ else
   dbus-launch retroarch --fullscreen --verbose -L "$CORE_PATH" "$ROM" 2>/tmp/ra.log
 fi
 
-DISPLAY=:0 chromium-browser --kiosk --no-first-run http://localhost:5000 &
+DISPLAY=:0 firefox --kiosk --fullscreen --no-first-run http://localhost:5000 &
 disown
