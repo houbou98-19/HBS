@@ -75,7 +75,7 @@ def handle_get_roms(params):
 
 def handle_launch_game(params):
     """GET /launch?id=GAME_ID - Launch a game"""
-    import subprocess
+    from hbs import launch_subprocess
     
     game_id = params.get("id", [None])[0]
     
@@ -114,11 +114,9 @@ def handle_launch_game(params):
         return {"error": f"ROM file not found: {rom_path}"}, 404
     
     core = PLATFORM_CORES[platform]
-    launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
     
     try:
-        # Launch the game via launcher.sh
-        subprocess.Popen([launcher_path, core, rom_path])
+        launch_subprocess(core, rom_path)
         
         # Update last_played and playtime
         for g in games:
@@ -135,12 +133,10 @@ def handle_launch_game(params):
 
 def handle_menu(params):
     """GET /menu - Launch RetroArch menu"""
-    import subprocess
-    
-    launcher_path = os.path.join(os.path.dirname(__file__), "..", "launcher.sh")
+    from hbs import launch_subprocess
     
     try:
-        subprocess.Popen([launcher_path, "menu"])
+        launch_subprocess("menu")
         return {"status": "launching", "app": "retroarch"}, 200
     except Exception as e:
         return {"error": str(e)}, 500

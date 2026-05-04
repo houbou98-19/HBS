@@ -4,11 +4,16 @@ HB System - Retro Gaming Launcher
 Main HTTP server with modular routes
 """
 import json
+import subprocess
+import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 from config import ensure_config, PORT
 from routes import get_route_handler
+
+# Global subprocess tracker
+current_process = None
 
 class HBSHandler(BaseHTTPRequestHandler):
     """HTTP request handler for HBS"""
@@ -101,8 +106,41 @@ class HBSHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_json(500, {"error": str(e)})
 
+def launch_subprocess(core=None, rom=None):
+    """Launch launcher.sh subprocess, kill previous one if running"""
+    global current_process
+    
+    # Kill previous process
+    if current_process:
+        try:
+            current_process.terminate()
+            current_process.wait(timeout=2)
+        except:
+            current_process.kill()
+    
+    # Build launcher.sh command
+    launcher_path = os.path.expanduser("~/hbs/launcher.sh")
+    cmd = ['/bin/bash', launcher_path]
+    
+    if core:
+        cmd.append(core)
+    if rom:
+        cmd.append(rom)
+    
+    # Launch and track
+    current_process = subprocess.Popen(cmd)
+    
+    def restart_firefox():
+        current_process.wait()
+        launch_subprocess()
+    
+    import threading
+    threading.Thread(target=restart_firefox, daemon=True).start()
+
 if __name__ == "__main__":
     ensure_config()
+    launch_subprocess()
+    
     server = HTTPServer(("0.0.0.0", PORT), HBSHandler)
     print(f"HB System running on http://localhost:{PORT}")
     try:
