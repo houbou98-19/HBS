@@ -32,7 +32,11 @@ class CarouselMenu(pyglet.window.Window):
     """Main carousel menu window"""
     
     def __init__(self):
-        super().__init__(1920, 1080, fullscreen=False)
+        # Get display size for fullscreen
+        display = pyglet.canvas.get_display()
+        screen = display.get_screens()[0]
+        
+        super().__init__(screen.width, screen.height, fullscreen=True)
         self.set_caption("HB SYSTEM")
         
         app_config = load_config()
@@ -61,9 +65,9 @@ class CarouselMenu(pyglet.window.Window):
         title = pyglet.text.Label(
             "HB SYSTEM",
             font_name="Press Start 2P",
-            font_size=48,
+            font_size=60,
             x=self.width // 2,
-            y=self.height - 100,
+            y=self.height - 120,
             anchor_x='center',
             color=(0, 255, 136, 255)
         )
@@ -72,9 +76,9 @@ class CarouselMenu(pyglet.window.Window):
         subtitle = pyglet.text.Label(
             "PERSONAL ARCADE",
             font_name="Press Start 2P",
-            font_size=20,
+            font_size=24,
             x=self.width // 2,
-            y=self.height - 150,
+            y=self.height - 200,
             anchor_x='center',
             color=(0, 170, 255, 255)
         )
@@ -83,14 +87,14 @@ class CarouselMenu(pyglet.window.Window):
     def draw_carousel(self):
         """Draw game carousel"""
         center_x = self.width // 2
-        center_y = self.height // 2 - 50
-        spacing = 200
+        center_y = self.height // 2
+        spacing = 220
         
         for i, game in enumerate(self.games):
             offset = (i - self.current_index)
             x = center_x + (offset * spacing)
             
-            if -600 < x < self.width + 600:
+            if -800 < x < self.width + 800:
                 is_active = (i == self.current_index)
                 self.draw_card(game, x, center_y, is_active)
     
@@ -105,15 +109,15 @@ class CarouselMenu(pyglet.window.Window):
             line1 = name
             line2 = ""
         
-        color = (0, 170, 255, 255) if is_active else (0, 255, 136, 150)
+        color = (0, 170, 255, 255) if is_active else (0, 255, 136, 100)
         
         if is_active:
             border = pyglet.text.Label(
-                "┌──────────┐",
-                font_name="Arial",
-                font_size=14,
+                "┌──────────────┐",
+                font_name="Press Start 2P",
+                font_size=16,
                 x=x,
-                y=y + 50,
+                y=y + 70,
                 anchor_x='center',
                 color=color
             )
@@ -122,9 +126,9 @@ class CarouselMenu(pyglet.window.Window):
         card_label = pyglet.text.Label(
             line1,
             font_name="Press Start 2P",
-            font_size=14,
+            font_size=16,
             x=x,
-            y=y + 20,
+            y=y + 30,
             anchor_x='center',
             anchor_y='center',
             color=color
@@ -135,9 +139,9 @@ class CarouselMenu(pyglet.window.Window):
             card_label2 = pyglet.text.Label(
                 line2,
                 font_name="Press Start 2P",
-                font_size=12,
+                font_size=14,
                 x=x,
-                y=y - 5,
+                y=y - 10,
                 anchor_x='center',
                 anchor_y='center',
                 color=color
@@ -147,21 +151,21 @@ class CarouselMenu(pyglet.window.Window):
         playtime_label = pyglet.text.Label(
             f"{game.get('playtime', 0)}h",
             font_name="Press Start 2P",
-            font_size=10,
+            font_size=12,
             x=x,
-            y=y - 40,
+            y=y - 60,
             anchor_x='center',
-            color=(100, 100, 100, 200)
+            color=(0, 255, 136, 150)
         )
         playtime_label.draw()
         
         if is_active:
             border2 = pyglet.text.Label(
-                "└──────────┘",
-                font_name="Arial",
-                font_size=14,
+                "└──────────────┘",
+                font_name="Press Start 2P",
+                font_size=16,
                 x=x,
-                y=y - 60,
+                y=y - 90,
                 anchor_x='center',
                 color=color
             )
@@ -172,12 +176,12 @@ class CarouselMenu(pyglet.window.Window):
         version_label = pyglet.text.Label(
             f"v{self.version}",
             font_name="Press Start 2P",
-            font_size=10,
-            x=self.width - 20,
-            y=20,
+            font_size=12,
+            x=self.width - 30,
+            y=30,
             anchor_x='right',
             anchor_y='bottom',
-            color=(100, 100, 100, 200)
+            color=(100, 100, 100, 150)
         )
         version_label.draw()
     
@@ -187,9 +191,9 @@ class CarouselMenu(pyglet.window.Window):
             status_label = pyglet.text.Label(
                 self.launch_status,
                 font_name="Press Start 2P",
-                font_size=14,
+                font_size=16,
                 x=self.width // 2,
-                y=self.height // 2 + 200,
+                y=self.height // 2 + 250,
                 anchor_x='center',
                 color=(0, 255, 136, 255)
             )
@@ -200,11 +204,11 @@ class CarouselMenu(pyglet.window.Window):
         instructions = pyglet.text.Label(
             "DPAD LEFT/RIGHT to navigate | A to launch | MENU to exit",
             font_name="Press Start 2P",
-            font_size=10,
+            font_size=12,
             x=self.width // 2,
-            y=50,
+            y=60,
             anchor_x='center',
-            color=(100, 100, 100, 255)
+            color=(100, 100, 100, 150)
         )
         instructions.draw()
     
