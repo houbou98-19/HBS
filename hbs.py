@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 HB System - Retro Gaming Launcher
 Main HTTP server with modular routes
@@ -8,12 +7,18 @@ import subprocess
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-
 from config import ensure_config, PORT
 from routes import get_route_handler
 
-# Global subprocess tracker
-current_process = None
+def launch_game(launcher_script):
+    """Launch a game using the launcher script"""
+    launcher_path = os.path.join(os.path.dirname(__file__), "launcher.sh")
+    try:
+        subprocess.Popen([launcher_path, launcher_script])
+        return True
+    except Exception as e:
+        print(f"Error launching game: {e}")
+        return False
 
 class HBSHandler(BaseHTTPRequestHandler):
     """HTTP request handler for HBS"""
@@ -32,17 +37,6 @@ class HBSHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
     
-    def send_html(self, code, content):
-        """Send HTML response"""
-        if isinstance(content, str):
-            content = content.encode()
-        
-        self.send_response(code)
-        self.send_header("Content-Type", "text/html")
-        self.send_header("Content-Length", len(content))
-        self.end_headers()
-        self.wfile.write(content)
-    
     def do_GET(self):
         """Handle GET requests"""
         parsed = urlparse(self.path)
@@ -59,19 +53,10 @@ class HBSHandler(BaseHTTPRequestHandler):
         try:
             result = handler(params)
             
-            # Handle different response types
             if isinstance(result, tuple):
-                # (data, code) tuple
                 data, code = result
-                if isinstance(data, bytes):
-                    self.send_html(code, data)
-                else:
-                    self.send_json(code, data)
-            elif isinstance(result, bytes):
-                # Raw HTML bytes
-                self.send_html(200, result)
+                self.send_json(code, data)
             else:
-                # JSON response
                 self.send_json(200, result)
         except Exception as e:
             self.send_json(500, {"error": str(e)})
@@ -89,13 +74,11 @@ class HBSHandler(BaseHTTPRequestHandler):
             return
         
         try:
-            # Parse request body
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length))
             
             result = handler(body)
             
-            # Handle response
             if isinstance(result, tuple):
                 data, code = result
                 self.send_json(code, data)
@@ -106,41 +89,8 @@ class HBSHandler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_json(500, {"error": str(e)})
 
-def launch_subprocess(core=None, rom=None):
-    """Launch launcher.sh subprocess, kill previous one if running"""
-    global current_process
-    
-    # Kill previous process
-    if current_process:
-        try:
-            current_process.terminate()
-            current_process.wait(timeout=2)
-        except:
-            current_process.kill()
-    
-    # Build launcher.sh command
-    launcher_path = os.path.expanduser("~/hbs/launcher.sh")
-    cmd = ['/bin/bash', launcher_path]
-    
-    if core:
-        cmd.append(core)
-    if rom:
-        cmd.append(rom)
-    
-    # Launch and track
-    current_process = subprocess.Popen(cmd)
-    
-    def restart_firefox():
-        current_process.wait()
-        launch_subprocess()
-    
-    import threading
-    threading.Thread(target=restart_firefox, daemon=True).start()
-
 if __name__ == "__main__":
     ensure_config()
-    launch_subprocess()
-    
     server = HTTPServer(("0.0.0.0", PORT), HBSHandler)
     print(f"HB System running on http://localhost:{PORT}")
     try:

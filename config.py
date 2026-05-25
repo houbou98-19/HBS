@@ -5,19 +5,7 @@ import json
 import os
 
 CONFIG_DIR = os.path.expanduser("~/.hbs")
-GAMES_FILE = os.path.join(CONFIG_DIR, "games.json")
-
-PLATFORM_DIRS = {
-    "NES": "nes",
-    "SNES": "snes",
-    "N64": "n64",
-    "GBA": "gba",
-    "GBC": "gbc",
-    "NDS": "nds",
-    "3DS": "3ds",
-    "WII": "wii",
-    "Switch": "switch"
-}
+GAMES_FILE = os.path.join(CONFIG_DIR, "games_database.json")
 
 def load_config():
     """Load config from config.json in script directory"""
@@ -29,13 +17,11 @@ def load_config():
         print(f"Warning: Could not load config.json: {e}")
         return {
             "version": "unknown",
-            "roms_root": os.path.expanduser("~/roms"),
             "port": 5000,
             "display_name": "HB SYSTEM"
         }
 
 CONFIG = load_config()
-ROMS_ROOT = os.environ.get("HBS_ROMS_ROOT") or CONFIG.get("roms_root", os.path.expanduser("~/roms"))
 PORT = CONFIG.get("port", 5000)
 
 def get_version():
@@ -43,11 +29,8 @@ def get_version():
     return CONFIG.get("version", "unknown")
 
 def ensure_config():
-    """Create config directory and default games.json if needed"""
+    """Create config directory if needed"""
     os.makedirs(CONFIG_DIR, exist_ok=True)
-    if not os.path.exists(GAMES_FILE):
-        with open(GAMES_FILE, "w") as f:
-            json.dump([], f)
 
 def load_games():
     """Load games from JSON file"""
