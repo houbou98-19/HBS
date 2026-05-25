@@ -32,10 +32,13 @@ class CarouselMenu(pyglet.window.Window):
     """Main carousel menu window"""
     
     def __init__(self):
-        super().__init__(1920, 1080, fullscreen=False)
-        self.set_caption("HB SYSTEM")
+        # Get actual screen resolution from environment or use fallback
+        import os
+        width = int(os.environ.get('SCREEN_WIDTH', 1920))
+        height = int(os.environ.get('SCREEN_HEIGHT', 1080))
         
-        # Set window to borderless and position at 0,0
+        super().__init__(width, height, fullscreen=False)
+        self.set_caption("HB SYSTEM")
         self.set_location(0, 0)
         
         app_config = load_config()
