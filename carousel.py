@@ -34,6 +34,7 @@ class CarouselMenu(pyglet.window.Window):
     def __init__(self):
         super().__init__(1920, 1080, fullscreen=False)
         self.set_caption("HB SYSTEM")
+        self.maximize()
         
         app_config = load_config()
         self.version = app_config.get("version", "unknown")
@@ -46,7 +47,7 @@ class CarouselMenu(pyglet.window.Window):
         print(f"HB SYSTEM v{self.version}")
         print(f"Loaded {len(self.games)} games")
         print(f"Resolution: {self.width}x{self.height}")
-    
+
     def on_draw(self):
         """Render carousel UI"""
         pyglet.gl.glClearColor(0.04, 0.02, 0.1, 1.0)
