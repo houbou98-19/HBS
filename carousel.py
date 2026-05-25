@@ -68,7 +68,7 @@ class CarouselMenu(pyglet.window.Window):
         title = pyglet.text.Label(
             "HB SYSTEM",
             font_name="Press Start 2P",
-            font_size=100,
+            font_size=120,
             x=self.width // 2,
             y=self.height - 250,
             anchor_x='center',
