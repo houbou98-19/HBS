@@ -33,7 +33,8 @@ class CarouselMenu(pyglet.window.Window):
     
     def __init__(self):
         # Get display size for fullscreen
-        display = pyglet.canvas.get_display()
+        from pyglet import canvas
+        display = canvas.get_display()
         screen = display.get_screens()[0]
         
         super().__init__(screen.width, screen.height, fullscreen=True)
@@ -49,6 +50,7 @@ class CarouselMenu(pyglet.window.Window):
         
         print(f"HB SYSTEM v{self.version}")
         print(f"Loaded {len(self.games)} games")
+        print(f"Resolution: {self.width}x{self.height}")
     
     def on_draw(self):
         """Render carousel UI"""
