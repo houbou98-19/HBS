@@ -88,10 +88,12 @@ class CarouselMenu(pyglet.window.Window):
         subtitle.draw()
     
     def draw_carousel(self):
-        """Draw game carousel"""
+        """Draw game carousel with infinite scrolling"""
         center_x = self.width // 2
         center_y = self.height // 2 - 600
         spacing = 800
+        
+        num_games = len(self.games)
         
         for i, game in enumerate(self.games):
             offset = (i - self.current_index)
@@ -100,6 +102,19 @@ class CarouselMenu(pyglet.window.Window):
             if -800 < x < self.width + 800:
                 is_active = (i == self.current_index)
                 self.draw_card(game, x, center_y, is_active)
+            
+            # Draw wraparound cards on left and right edges
+            # Left side wraparound
+            offset_left = (i - self.current_index - num_games)
+            x_left = center_x + (offset_left * spacing)
+            if -800 < x_left < self.width + 800:
+                self.draw_card(game, x_left, center_y, False)
+            
+            # Right side wraparound
+            offset_right = (i - self.current_index + num_games)
+            x_right = center_x + (offset_right * spacing)
+            if -800 < x_right < self.width + 800:
+                self.draw_card(game, x_right, center_y, False)
     
     def draw_card(self, game, x, y, is_active):
         """Draw a single game card"""
