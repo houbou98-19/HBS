@@ -35,8 +35,8 @@ class CarouselMenu(pyglet.window.Window):
         super().__init__(1920, 1080, fullscreen=False)
         self.set_caption("HB SYSTEM")
         
-        self.config = load_config()
-        self.version = self.config.get("version", "unknown")
+        app_config = load_config()
+        self.version = app_config.get("version", "unknown")
         self.games = load_games()
         self.current_index = 0
         self.last_launch_time = 0
