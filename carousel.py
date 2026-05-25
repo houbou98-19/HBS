@@ -179,7 +179,7 @@ class CarouselMenu(pyglet.window.Window):
         version_label = pyglet.text.Label(
             f"v{self.version}",
             font_name="Press Start 2P",
-            font_size=12,
+            font_size=50,
             x=self.width - 30,
             y=30,
             anchor_x='right',
