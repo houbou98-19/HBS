@@ -91,7 +91,7 @@ class CarouselMenu(pyglet.window.Window):
         """Draw game carousel"""
         center_x = self.width // 2
         center_y = self.height // 2 + 200
-        spacing = 220
+        spacing = 320
         
         for i, game in enumerate(self.games):
             offset = (i - self.current_index)
@@ -118,7 +118,7 @@ class CarouselMenu(pyglet.window.Window):
             border = pyglet.text.Label(
                 "┌──────────────┐",
                 font_name="Arial",
-                font_size=16,
+                font_size=24,
                 x=x,
                 y=y + 70,
                 anchor_x='center',
@@ -129,7 +129,7 @@ class CarouselMenu(pyglet.window.Window):
         card_label = pyglet.text.Label(
             line1,
             font_name="Press Start 2P",
-            font_size=16,
+            font_size=32,
             x=x,
             y=y + 30,
             anchor_x='center',
@@ -142,7 +142,7 @@ class CarouselMenu(pyglet.window.Window):
             card_label2 = pyglet.text.Label(
                 line2,
                 font_name="Press Start 2P",
-                font_size=14,
+                font_size=24,
                 x=x,
                 y=y - 10,
                 anchor_x='center',
@@ -166,7 +166,7 @@ class CarouselMenu(pyglet.window.Window):
             border2 = pyglet.text.Label(
                 "└──────────────┘",
                 font_name="Arial",
-                font_size=16,
+                font_size=24,
                 x=x,
                 y=y - 90,
                 anchor_x='center',
