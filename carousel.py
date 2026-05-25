@@ -32,7 +32,7 @@ class CarouselMenu(pyglet.window.Window):
     """Main carousel menu window"""
     
     def __init__(self):
-        super().__init__(1920, 1080, fullscreen=False)
+        super().__init__(1920, 1080, fullscreen=True, vsync=False)
         self.set_caption("HB SYSTEM")
         self.maximize()
         
