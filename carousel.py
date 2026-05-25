@@ -206,6 +206,8 @@ class CarouselMenu(pyglet.window.Window):
     
     def draw_cover(self):
         """Draw large cover image for active game in center of screen"""
+        import math
+        
         if not self.games:
             return
         
@@ -236,14 +238,16 @@ class CarouselMenu(pyglet.window.Window):
                 display_height = max_height
                 display_width = int(max_height * aspect)
             
+            bob_amount = math.sin(time.time() * 2) * 30  # Bobs up/down 30 pixels, 2 Hz
+            
             sprite = pyglet.sprite.Sprite(cover_image)
             sprite.x = (self.width - display_width) // 2
-            sprite.y = (self.height - display_height) // 2 + 100
+            sprite.y = (self.height - display_height) // 2 + 100 + bob_amount
             sprite.scale_x = display_width / cover_image.width
             sprite.scale_y = display_height / cover_image.height
             sprite.draw()
         except Exception as e:
-            print(f"Error drawing cover: {e}")    
+            print(f"Error drawing cover: {e}")
     
     def draw_card(self, game, x, y, is_active):
         """Draw a single game card"""
