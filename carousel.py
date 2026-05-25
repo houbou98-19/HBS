@@ -128,6 +128,8 @@ class CarouselMenu(pyglet.window.Window):
         self.animation_time = 0
         self.animation_duration = 0.3  # seconds
         self.prev_index = 0
+
+        self.y_offset = 100
         
         print(f"HB SYSTEM v{self.version}")
         print(f"Loaded {len(self.games)} games")
@@ -151,7 +153,7 @@ class CarouselMenu(pyglet.window.Window):
             font_name="Press Start 2P",
             font_size=150,
             x=self.width // 2,
-            y=self.height - 250,
+            y=self.height - 250 - self.y_offset,
             anchor_x='center',
             color=(0, 255, 136, 255)
         )
@@ -162,7 +164,7 @@ class CarouselMenu(pyglet.window.Window):
             font_name="Press Start 2P",
             font_size=64,
             x=self.width // 2,
-            y=self.height - 350,
+            y=self.height - 350 - self.y_offset,
             anchor_x='center',
             color=(0, 170, 255, 255)
         )
@@ -171,7 +173,7 @@ class CarouselMenu(pyglet.window.Window):
     def draw_carousel(self):
         """Draw game carousel with infinite scrolling"""
         center_x = self.width // 2
-        center_y = self.height // 2 - 600
+        center_y = self.height // 2 - 600 - self.y_offset
         spacing = 800
         
         num_games = len(self.games)
@@ -238,11 +240,11 @@ class CarouselMenu(pyglet.window.Window):
                 display_height = max_height
                 display_width = int(max_height * aspect)
             
-            bob_amount = math.sin(time.time() * 2) * 30  # Bobs up/down 30 pixels, 2 Hz
+            bob_amount = math.sin(time.time() * 2) * 30
             
             sprite = pyglet.sprite.Sprite(cover_image)
             sprite.x = (self.width - display_width) // 2
-            sprite.y = (self.height - display_height) // 2 + 100 + bob_amount
+            sprite.y = (self.height - display_height) // 2 + 100 - self.y_offset + bob_amount
             sprite.scale_x = display_width / cover_image.width
             sprite.scale_y = display_height / cover_image.height
             sprite.draw()
