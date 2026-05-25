@@ -90,7 +90,7 @@ class CarouselMenu(pyglet.window.Window):
     def draw_carousel(self):
         """Draw game carousel"""
         center_x = self.width // 2
-        center_y = self.height // 2 - 400
+        center_y = self.height // 2 - 600
         spacing = 800
         
         for i, game in enumerate(self.games):
