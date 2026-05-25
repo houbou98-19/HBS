@@ -70,7 +70,7 @@ class CarouselMenu(pyglet.window.Window):
             font_name="Press Start 2P",
             font_size=100,
             x=self.width // 2,
-            y=self.height - 220,
+            y=self.height - 250,
             anchor_x='center',
             color=(0, 255, 136, 255)
         )
@@ -79,9 +79,9 @@ class CarouselMenu(pyglet.window.Window):
         subtitle = pyglet.text.Label(
             "PERSONAL ARCADE",
             font_name="Press Start 2P",
-            font_size=24,
+            font_size=32,
             x=self.width // 2,
-            y=self.height - 300,
+            y=self.height - 350,
             anchor_x='center',
             color=(0, 170, 255, 255)
         )
