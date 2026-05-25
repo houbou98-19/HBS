@@ -5,7 +5,7 @@ import json
 import os
 
 CONFIG_DIR = os.path.expanduser("~/.hbs")
-GAMES_FILE = os.path.join(CONFIG_DIR, "games_database.json")
+GAMES_FILE = os.path.join(os.path.dirname(__file__), "games_database.json")
 
 def load_config():
     """Load config from config.json in script directory"""
