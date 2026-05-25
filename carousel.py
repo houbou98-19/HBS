@@ -117,7 +117,7 @@ class CarouselMenu(pyglet.window.Window):
         if is_active:
             border = pyglet.text.Label(
                 "┌──────────────┐",
-                font_name="Press Start 2P",
+                font_name="Arial",
                 font_size=16,
                 x=x,
                 y=y + 70,
@@ -165,7 +165,7 @@ class CarouselMenu(pyglet.window.Window):
         if is_active:
             border2 = pyglet.text.Label(
                 "└──────────────┘",
-                font_name="Press Start 2P",
+                font_name="Arial",
                 font_size=16,
                 x=x,
                 y=y - 90,
