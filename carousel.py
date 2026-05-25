@@ -28,6 +28,75 @@ def load_games():
         print(f"Error loading games: {e}")
         return []
 
+def fetch_game_covers(api_key):
+    """Fetch and cache game cover images from SteamGridDB"""
+    import subprocess
+    
+    covers_dir = os.path.expanduser("~/.hbs/covers")
+    os.makedirs(covers_dir, exist_ok=True)
+    
+    games = load_games()
+    
+    for game in games:
+        game_id = game['id']
+        cover_path = os.path.join(covers_dir, f"{game_id}.png")
+        
+        # Skip if already cached
+        if os.path.exists(cover_path):
+            game['cover_path'] = cover_path
+            continue
+        
+        print(f"Fetching cover for {game['name']}...")
+        
+        try:
+            # Search for game on SteamGridDB
+            search_response = requests.get(
+                f"https://www.steamgriddb.com/api/v2/search/autocomplete/{game['name'].replace(' ', '%20')}",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=5
+            )
+            
+            if not search_response.ok:
+                print(f"  ✗ Search failed for {game['name']}")
+                continue
+            
+            search_data = search_response.json()
+            if not search_data.get('data'):
+                print(f"  ✗ No results for {game['name']}")
+                continue
+            
+            steamgrid_id = search_data['data'][0]['id']
+            
+            # Fetch logo/cover
+            logo_response = requests.get(
+                f"https://www.steamgriddb.com/api/v2/logos/game/{steamgrid_id}",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=5
+            )
+            
+            if not logo_response.ok or not logo_response.json().get('data'):
+                print(f"  ✗ No cover found for {game['name']}")
+                continue
+            
+            image_url = logo_response.json()['data'][0]['url']
+            
+            # Download and cache image
+            image_response = requests.get(image_url, timeout=10)
+            if image_response.ok:
+                with open(cover_path, 'wb') as f:
+                    f.write(image_response.content)
+                game['cover_path'] = cover_path
+                print(f"  ✓ Downloaded cover for {game['name']}")
+            else:
+                print(f"  ✗ Failed to download {game['name']}")
+        
+        except Exception as e:
+            print(f"  ✗ Error fetching {game['name']}: {e}")
+    
+    # Save updated games with cover paths
+    from config import save_games
+    save_games(games)
+
 class CarouselMenu(pyglet.window.Window):
     """Main carousel menu window"""
     
@@ -43,6 +112,12 @@ class CarouselMenu(pyglet.window.Window):
         
         app_config = load_config()
         self.version = app_config.get("version", "unknown")
+        
+        api_key = os.environ.get('STEAMGRIDDB_API_KEY')
+        if api_key:
+            print("Fetching game covers from SteamGridDB...")
+            fetch_game_covers(api_key)
+        
         self.games = load_games()
         self.current_index = 0
         self.last_launch_time = 0
