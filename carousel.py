@@ -49,10 +49,15 @@ class CarouselMenu(pyglet.window.Window):
         self.launch_status = ""
         self.status_time = 0
         
+        # Animation state
+        self.animation_time = 0
+        self.animation_duration = 0.3  # seconds
+        self.prev_index = 0
+        
         print(f"HB SYSTEM v{self.version}")
         print(f"Loaded {len(self.games)} games")
         print(f"Resolution: {self.width}x{self.height}")
-
+    
     def on_draw(self):
         """Render carousel UI"""
         pyglet.gl.glClearColor(0.04, 0.02, 0.1, 1.0)
@@ -116,6 +121,13 @@ class CarouselMenu(pyglet.window.Window):
             if -800 < x_right < self.width + 800:
                 self.draw_card(game, x_right, center_y, False)
     
+    def get_animation_alpha(self):
+        """Get alpha value for text animation (0-255)"""
+        if self.animation_time >= self.animation_duration:
+            return 255
+        progress = self.animation_time / self.animation_duration
+        return int(255 * progress)
+    
     def draw_card(self, game, x, y, is_active):
         """Draw a single game card"""
         name = game['name']
@@ -128,6 +140,13 @@ class CarouselMenu(pyglet.window.Window):
             line2 = ""
         
         color = (0, 170, 255, 255) if is_active else (0, 255, 136, 100)
+        
+        # Apply animation alpha to active card text
+        if is_active:
+            anim_alpha = self.get_animation_alpha()
+            text_color = (color[0], color[1], color[2], anim_alpha)
+        else:
+            text_color = color
         
         if is_active:
             border = pyglet.text.Label(
@@ -149,7 +168,7 @@ class CarouselMenu(pyglet.window.Window):
             y=y + 30,
             anchor_x='center',
             anchor_y='center',
-            color=color
+            color=text_color
         )
         card_label.draw()
         
@@ -162,7 +181,7 @@ class CarouselMenu(pyglet.window.Window):
                 y=y - 10,
                 anchor_x='center',
                 anchor_y='center',
-                color=color
+                color=text_color
             )
             card_label2.draw()
         
@@ -233,9 +252,13 @@ class CarouselMenu(pyglet.window.Window):
     def on_key_press(self, symbol, modifiers):
         """Handle keyboard input"""
         if symbol == pyglet.window.key.LEFT:
+            self.prev_index = self.current_index
             self.current_index = (self.current_index - 1) % len(self.games)
+            self.animation_time = 0
         elif symbol == pyglet.window.key.RIGHT:
+            self.prev_index = self.current_index
             self.current_index = (self.current_index + 1) % len(self.games)
+            self.animation_time = 0
         elif symbol == pyglet.window.key.RETURN or symbol == pyglet.window.key.SPACE:
             self.launch_game()
         elif symbol == pyglet.window.key.ESCAPE:
@@ -253,9 +276,13 @@ class CarouselMenu(pyglet.window.Window):
         """Handle controller stick/dpad input"""
         if axis == 0:
             if value < -0.5:
+                self.prev_index = self.current_index
                 self.current_index = (self.current_index - 1) % len(self.games)
+                self.animation_time = 0
             elif value > 0.5:
+                self.prev_index = self.current_index
                 self.current_index = (self.current_index + 1) % len(self.games)
+                self.animation_time = 0
     
     def launch_game(self):
         """Launch selected game via API"""
@@ -286,9 +313,17 @@ class CarouselMenu(pyglet.window.Window):
         
         self.status_time = time.time()
 
+def update(dt):
+    """Update animation state"""
+    menu.animation_time += dt
+    if menu.animation_time > menu.animation_duration:
+        menu.animation_time = menu.animation_duration
+
 def main():
     """Start carousel menu"""
+    global menu
     menu = CarouselMenu()
+    pyglet.clock.schedule(update)
     pyglet.app.run()
 
 if __name__ == "__main__":
