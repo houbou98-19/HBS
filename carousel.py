@@ -139,6 +139,7 @@ class CarouselMenu(pyglet.window.Window):
         self.clear()
         
         self.draw_title()
+        self.draw_cover()
         self.draw_carousel()
         self.draw_version()
         self.draw_status()
@@ -202,6 +203,47 @@ class CarouselMenu(pyglet.window.Window):
             return 255
         progress = self.animation_time / self.animation_duration
         return int(255 * progress)
+    
+    def draw_cover(self):
+        """Draw large cover image for active game in center of screen"""
+        if not self.games:
+            return
+        
+        game = self.games[self.current_index]
+        
+        if not game.get('cover_path') or not os.path.exists(game['cover_path']):
+            return
+        
+        try:
+            if not hasattr(self, '_cover_images'):
+                self._cover_images = {}
+            
+            cover_key = game['id']
+            if cover_key not in self._cover_images:
+                self._cover_images[cover_key] = pyglet.image.load(game['cover_path'])
+            
+            cover_image = self._cover_images[cover_key]
+            
+            # Scale to fit center of screen (adjust size as needed)
+            max_height = 500
+            max_width = 400
+            aspect = cover_image.width / cover_image.height
+            
+            if aspect > max_width / max_height:
+                display_width = max_width
+                display_height = int(max_width / aspect)
+            else:
+                display_height = max_height
+                display_width = int(max_height * aspect)
+            
+            sprite = pyglet.sprite.Sprite(cover_image)
+            sprite.x = (self.width - display_width) // 2
+            sprite.y = (self.height - display_height) // 2 + 100
+            sprite.scale_x = display_width / cover_image.width
+            sprite.scale_y = display_height / cover_image.height
+            sprite.draw()
+        except Exception as e:
+            print(f"Error drawing cover: {e}")    
     
     def draw_card(self, game, x, y, is_active):
         """Draw a single game card"""
