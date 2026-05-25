@@ -225,8 +225,8 @@ class CarouselMenu(pyglet.window.Window):
             cover_image = self._cover_images[cover_key]
             
             # Scale to fit center of screen (adjust size as needed)
-            max_height = 500
-            max_width = 400
+            max_height = 1500
+            max_width = 1200
             aspect = cover_image.width / cover_image.height
             
             if aspect > max_width / max_height:
