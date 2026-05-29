@@ -97,12 +97,9 @@ jobs:
             CHANGELOG=$(git log --oneline $PREV_TAG..${{ needs.version.outputs.new-version }})
           fi
           
-          # Escape newlines for GitHub output
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          
-          echo "body=$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   detect-changes:
     runs-on: ubuntu-latest
@@ -137,7 +134,7 @@ jobs:
           echo "hbs=true" >> $GITHUB_OUTPUT
 
   build-hbs:
-    needs: [version, generate-changelog, detect-changes]
+    needs: [version, detect-changes, generate-changelog]
     if: needs.detect-changes.outputs.hbs-changed == 'true'
     runs-on: ubuntu-latest
     
@@ -180,7 +177,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   build-carousel:
-    needs: [version, generate-changelog, detect-changes]
+    needs: [version, detect-changes, generate-changelog]
     if: needs.detect-changes.outputs.carousel-changed == 'true'
     runs-on: ubuntu-latest
     
