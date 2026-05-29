@@ -150,7 +150,7 @@ jobs:
       - name: Build HBS
         run: |
           cd installer/linux/hbs
-          pyinstaller hbs.spec --distpath ./dist --buildpath ./build
+          pyinstaller carousel.spec --distpath ./dist --workpath ./build
           cd dist
           tar -czf ../../hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs/
       
@@ -183,7 +183,7 @@ jobs:
       - name: Build Carousel
         run: |
           cd installer/linux/carousel
-          pyinstaller carousel.spec --distpath ./dist --buildpath ./build
+          pyinstaller carousel.spec --distpath ./dist --workpath ./build
           cd dist
           tar -czf ../../carousel-${{ needs.version.outputs.new-version }}.tar.gz hbs-carousel/
       
