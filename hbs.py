@@ -35,6 +35,26 @@ def load_config():
     
     return config
 
+def load_games_database():
+    """Load games database from local file or bundled template"""
+    db_paths = [
+        os.path.expanduser("~/.hbs/games_database.json"),  # User database
+        os.path.join(os.path.dirname(__file__), "games_database.json"),  # Local file
+        os.path.join(os.path.dirname(__file__), "games_database.json.template"),  # Bundled fallback
+    ]
+    
+    for db_path in db_paths:
+        if os.path.exists(db_path):
+            try:
+                with open(db_path) as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Warning: Could not load {db_path}: {e}")
+    
+    # Default empty database
+    print("Warning: No games database found, using empty database")
+    return {"games": []}
+
 # Load config at startup
 CONFIG = load_config()
 PORT = CONFIG.get("port", 5000)

@@ -5,11 +5,28 @@ Game management and launching
 import os
 import json
 from datetime import datetime
-from config import load_games, save_games, GAMES_FILE
+
+def load_games_database():
+    """Load games database (imported from hbs module)"""
+    from hbs import load_games_database
+    return load_games_database()
+
+def save_games(games):
+    """Save games to database file"""
+    db_paths = [
+        os.path.expanduser("~/.hbs/games_database.json"),
+        os.path.join(os.path.dirname(__file__), "..", "games_database.json"),
+    ]
+    
+    # Save to user database location first
+    os.makedirs(os.path.expanduser("~/.hbs"), exist_ok=True)
+    with open(db_paths[0], "w") as f:
+        json.dump(games, f, indent=2)
 
 def handle_get_games(params):
     """GET /api/games - Returns list of all games"""
-    games = load_games()
+    db = load_games_database()
+    games = db.get("games", [])
     return {
         "games": games,
         "count": len(games)
@@ -17,19 +34,16 @@ def handle_get_games(params):
 
 def handle_post_games(body):
     """POST /api/games - Add a new game"""
-    # Validate required fields
     required = ["id", "name", "launcher"]
     if not all(k in body for k in required):
         return {"error": "Missing required fields: id, name, launcher"}, 400
     
-    # Load existing games
-    games = load_games()
+    db = load_games_database()
+    games = db.get("games", [])
     
-    # Check if game ID already exists
     if any(g["id"] == body["id"] for g in games):
         return {"error": "Game ID already exists"}, 400
     
-    # Add new game
     games.append({
         "id": body["id"],
         "name": body["name"],
@@ -38,23 +52,21 @@ def handle_post_games(body):
         "last_played": None
     })
     
-    # Save games
-    save_games(games)
+    save_games({"games": games})
     
     return {"status": "added", "game": body["name"]}, 201
 
 def handle_launch_game(params):
     """GET /launch?id=GAME_ID - Launch a game"""
     from hbs import launch_game
-    from config import load_games, save_games
-    from datetime import datetime
     
     game_id = params.get("id", [None])[0]
     
     if not game_id:
         return {"error": "Missing game id"}, 400
     
-    games = load_games()
+    db = load_games_database()
+    games = db.get("games", [])
     game = next((g for g in games if g["id"] == game_id), None)
     
     if not game:
@@ -75,19 +87,18 @@ def handle_launch_game(params):
             g["playtime"] = g.get("playtime", 0) + 1
             break
     
-    save_games(games)
+    save_games({"games": games})
     
     return {"status": "launching", "game": game["name"]}, 200
 
 def handle_get_status(params):
     """GET /api/status - Returns HBS system status and version"""
-    from config import load_config
+    from hbs import CONFIG
     
-    config = load_config()
     return {
         "status": "ok",
-        "version": config.get("version", "unknown"),
-        "hbs_name": config.get("display_name", "HB SYSTEM")
+        "version": CONFIG.get("version", "unknown"),
+        "hbs_name": CONFIG.get("display_name", "HB SYSTEM")
     }, 200
 
 ROUTES = {
