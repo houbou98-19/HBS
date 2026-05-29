@@ -14,8 +14,10 @@ on:
           - major
 
 jobs:
-  release:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      new-version: ${{ steps.version.outputs.NEW_VERSION }}
     
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +63,6 @@ jobs:
           
           NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          echo "VERSION=${MAJOR}.${MINOR}.${PATCH}" >> $GITHUB_OUTPUT
       
       - name: Create git tag
         run: |
@@ -74,44 +75,123 @@ jobs:
           
           git tag "$TAG"
           git push origin "$TAG"
+
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      hbs-changed: ${{ steps.changes.outputs.hbs }}
+      carousel-changed: ${{ steps.changes.outputs.carousel }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: dev
       
-      - name: Set version in config
+      - name: Detect what changed
+        id: changes
         run: |
-          # Read config and update version
+          git fetch --tags
+          
+          # Get previous tag
+          PREV_TAG=$(git tag --sort=-version:refname | head -1)
+          
+          if [ -z "$PREV_TAG" ]; then
+            # No previous tag, check all files
+            CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          else
+            # Check what changed since last tag
+            CHANGED=$(git diff --name-only $PREV_TAG..HEAD)
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED"
+          
+          if echo "$CHANGED" | grep -qE '(carousel\.py|installer/carousel)'; then
+            echo "carousel=true" >> $GITHUB_OUTPUT
+          else
+            echo "carousel=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if echo "$CHANGED" | grep -qE '(hbs\.py|routes/|config\.json|install\.sh|launcher\.sh)'; then
+            echo "hbs=true" >> $GITHUB_OUTPUT
+          else
+            echo "hbs=false" >> $GITHUB_OUTPUT
+          fi
+
+  build-hbs:
+    needs: [version, detect-changes]
+    if: needs.detect-changes.outputs.hbs-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller flask requests
+      
+      - name: Update version in config
+        run: |
           python3 << 'PYTHON'
           import json
-          
           with open('config.json') as f:
               config = json.load(f)
-          
-          config['version'] = '${{ steps.version.outputs.VERSION }}'
-          
+          config['version'] = '${{ needs.version.outputs.new-version }}'
           with open('config.json', 'w') as f:
               json.dump(config, f, indent=2)
           PYTHON
       
-      - name: Create package directory
+      - name: Build HBS
         run: |
-          mkdir -p hbs-${{ steps.version.outputs.VERSION }}
-          
-          # Copy all files from root (excluding specific ones)
-          cp -r * hbs-${{ steps.version.outputs.VERSION }}/ 2>/dev/null || true
-          
-          # Remove excluded files
-          rm -f hbs-${{ steps.version.outputs.VERSION }}/.gitignore
-          rm -f hbs-${{ steps.version.outputs.VERSION }}/LICENSE
-          rm -f hbs-${{ steps.version.outputs.VERSION }}/README.md
-          rm -rf hbs-${{ steps.version.outputs.VERSION }}/.github
-          
-          chmod +x hbs-${{ steps.version.outputs.VERSION }}/install.sh
+          cd installer/linux/hbs
+          pyinstaller hbs.spec --distpath ./dist --buildpath ./build
+          cd dist
+          tar -czf ../../hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs/
       
-      - name: Create tarball
-        run: tar -czf hbs-${{ steps.version.outputs.VERSION }}.tar.gz hbs-${{ steps.version.outputs.VERSION }}/
-      
-      - name: Create Release
+      - name: Upload HBS Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.version.outputs.NEW_VERSION }}
-          files: hbs-${{ steps.version.outputs.VERSION }}.tar.gz
+          tag_name: ${{ needs.version.outputs.new-version }}
+          files: installer/hbs-${{ needs.version.outputs.new-version }}.tar.gz
+          body: "HBS Backend v${{ needs.version.outputs.new-version }}"
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-carousel:
+    needs: [version, detect-changes]
+    if: needs.detect-changes.outputs.carousel-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller pyglet requests
+      
+      - name: Build Carousel
+        run: |
+          cd installer/linux/carousel
+          pyinstaller carousel.spec --distpath ./dist --buildpath ./build
+          cd dist
+          tar -czf ../../carousel-${{ needs.version.outputs.new-version }}.tar.gz hbs-carousel/
+      
+      - name: Upload Carousel Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.version.outputs.new-version }}
+          files: installer/carousel-${{ needs.version.outputs.new-version }}.tar.gz
+          body: "Carousel Frontend v${{ needs.version.outputs.new-version }}"
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
