@@ -3,7 +3,12 @@ a = Analysis(
     ['../../../hbs.py'],
     pathex=[],
     binaries=[],
-    datas=[('../../../config.json', '.'), ('../../../routes', 'routes'), ('../../../installer/games_database.json.template', '.')],
+    datas=[
+        ('../../../config.json', '.'),
+        ('../../../routes', 'routes'),
+        ('../../../games_database.json', '.'),
+        ('../../../launcher.sh', '.'),  # Add this line
+    ],
     hiddenimports=['flask', 'requests'],
     hookspath=[],
     hooksconfig={},

@@ -63,7 +63,16 @@ VERSION = CONFIG.get("version", "unknown")
 
 def launch_game(launcher_script):
     """Launch a game using the launcher script"""
-    launcher_path = os.path.join(os.path.dirname(__file__), "launcher.sh")
+    # Get launcher.sh from the binary's bundle directory
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller binary
+        bundle_dir = sys._MEIPASS
+    else:
+        # Running as Python script
+        bundle_dir = os.path.dirname(__file__)
+    
+    launcher_path = os.path.join(bundle_dir, "launcher.sh")
+    
     try:
         print(f"Launching: {launcher_script}")
         print(f"Launcher path: {launcher_path}")
