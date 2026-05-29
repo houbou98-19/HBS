@@ -150,7 +150,7 @@ jobs:
       - name: Build HBS
         run: |
           cd installer/linux/hbs
-          pyinstaller carousel.spec --distpath ./dist --workpath ./build
+          pyinstaller hbs.spec --distpath ./dist --workpath ./build
           cd dist
           tar -czf ../../hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs/
       
