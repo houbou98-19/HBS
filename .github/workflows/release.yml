@@ -150,7 +150,7 @@ jobs:
         run: |
           pip install pyinstaller flask requests
       
-      - name: Update version in config
+      - name: Update version in HBS config
         run: |
           python3 << 'PYTHON'
           import json
@@ -167,6 +167,7 @@ jobs:
           pyinstaller hbs.spec --distpath ./dist --workpath ./build
           mkdir -p hbs-pkg
           cp dist/hbs hbs-pkg/
+          cp ../../../config.json hbs-pkg/
           cp ../../../install.sh hbs-pkg/
           tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-pkg/
       
@@ -201,6 +202,7 @@ jobs:
           pyinstaller carousel.spec --distpath ./dist --workpath ./build
           mkdir -p carousel-pkg
           cp dist/hbs-carousel carousel-pkg/
+          cp ../../carousel_config.json.template carousel-pkg/carousel_config.json
           cp ../../../install.sh carousel-pkg/
           tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz carousel-pkg/
       
