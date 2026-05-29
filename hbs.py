@@ -7,8 +7,39 @@ import subprocess
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-from config import ensure_config, PORT
 from routes import get_route_handler
+
+def load_config():
+    """Load HBS configuration with bundled defaults"""
+    config = {}
+    
+    # Load bundled config first (for defaults like version)
+    bundled_path = os.path.join(os.path.dirname(__file__), "config.json")
+    if os.path.exists(bundled_path):
+        try:
+            with open(bundled_path) as f:
+                config = json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load bundled config: {e}")
+    
+    # Override with user config if it exists
+    user_path = os.path.expanduser("~/.hbs/config.json")
+    if os.path.exists(user_path):
+        try:
+            with open(user_path) as f:
+                user_config = json.load(f)
+                config.update(user_config)
+                print(f"✓ Loaded user config from {user_path}")
+        except Exception as e:
+            print(f"Warning: Could not load user config: {e}")
+    
+    return config
+
+# Load config at startup
+CONFIG = load_config()
+PORT = CONFIG.get("port", 5000)
+DISPLAY_NAME = CONFIG.get("display_name", "HB SYSTEM")
+VERSION = CONFIG.get("version", "unknown")
 
 def launch_game(launcher_script):
     """Launch a game using the launcher script"""
@@ -90,9 +121,8 @@ class HBSHandler(BaseHTTPRequestHandler):
             self.send_json(500, {"error": str(e)})
 
 if __name__ == "__main__":
-    ensure_config()
     server = HTTPServer(("0.0.0.0", PORT), HBSHandler)
-    print(f"HB System running on http://localhost:{PORT}")
+    print(f"HB System v{VERSION} running on http://localhost:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
