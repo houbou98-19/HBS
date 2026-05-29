@@ -4,21 +4,14 @@ set -e
 echo "🎮 HB System Installer"
 echo "====================="
 
-# Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 INSTALL_DIR="/home/hobo/hbs"
-HBS_SERVICE="hbs.service"
-CAROUSEL_SERVICE="hbs-carousel.service"
 
 echo "📦 Installing to $INSTALL_DIR"
 
-# Install dependencies
+# Install dependencies (only system packages)
 echo "📦 Installing dependencies..."
-sudo apt-get install -y retroarch dbus-x11 python3-pip
-
-# Install Python packages
-echo "📦 Installing Python packages..."
-pip3 install pyglet requests --break-system-packages
+sudo apt-get install -y retroarch dbus-x11
 
 # Install Press Start 2P font
 echo "🎨 Installing Press Start 2P font..."
@@ -29,54 +22,35 @@ if [ ! -f ~/.local/share/fonts/PressStart2P-Regular.ttf ]; then
     fc-cache -fv > /dev/null 2>&1 || true
 fi
 
-# Create install directory if needed
+# Create directories
 mkdir -p "$INSTALL_DIR"
-
-# Backup existing configs
-if [ -f "$INSTALL_DIR/config.json" ]; then
-    cp "$INSTALL_DIR/config.json" "$INSTALL_DIR/config.json.bak"
-fi
-if [ -f "$INSTALL_DIR/carousel_config.json" ]; then
-    cp "$INSTALL_DIR/carousel_config.json" "$INSTALL_DIR/carousel_config.json.bak"
-fi
-
-# Copy all files from package
-echo "📋 Copying files..."
-cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
-
-# Restore user configs if they existed
-if [ -f "$INSTALL_DIR/config.json.bak" ]; then
-    mv "$INSTALL_DIR/config.json.bak" "$INSTALL_DIR/config.json"
-    echo "✓ Preserved existing HBS config"
-fi
-if [ -f "$INSTALL_DIR/carousel_config.json.bak" ]; then
-    mv "$INSTALL_DIR/carousel_config.json.bak" "$INSTALL_DIR/carousel_config.json"
-    echo "✓ Preserved existing Carousel config"
-fi
-
-# Also preserve ~/.hbs configs
 mkdir -p ~/.hbs
-if [ -f "$INSTALL_DIR/config.json" ] && [ ! -f ~/.hbs/config.json ]; then
-    cp "$INSTALL_DIR/config.json" ~/.hbs/config.json
-fi
-if [ -f "$INSTALL_DIR/carousel_config.json" ] && [ ! -f ~/.hbs/carousel_config.json ]; then
-    cp "$INSTALL_DIR/carousel_config.json" ~/.hbs/carousel_config.json
+
+# Copy binaries and files
+echo "📋 Copying files..."
+cp "$SCRIPT_DIR/hbs" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/hbs-carousel" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/install.sh" "$INSTALL_DIR/"
+cp "$SCRIPT_DIR/launcher.sh" "$INSTALL_DIR/"
+
+# Copy configs only if they don't exist (preserve user configs)
+if [ ! -f ~/.hbs/config.json ] && [ -f "$SCRIPT_DIR/config.json" ]; then
+    cp "$SCRIPT_DIR/config.json" ~/.hbs/config.json
+    echo "✓ Created default HBS config"
 fi
 
-# Set permissions for entire directory
-chmod -R 755 "$INSTALL_DIR"
-chmod +x "$INSTALL_DIR/carousel.py"
-chmod +x "$INSTALL_DIR/launcher.sh"
+if [ ! -f ~/.hbs/carousel_config.json ] && [ -f "$SCRIPT_DIR/carousel_config.json" ]; then
+    cp "$SCRIPT_DIR/carousel_config.json" ~/.hbs/carousel_config.json
+    echo "✓ Created default Carousel config"
+fi
 
 # Restart services
 echo "🔄 Restarting HBS services..."
 sudo systemctl daemon-reload
-sudo systemctl enable $HBS_SERVICE $CAROUSEL_SERVICE
-sudo systemctl restart $HBS_SERVICE
-sudo systemctl restart $CAROUSEL_SERVICE
+sudo systemctl restart hbs.service
+sudo systemctl restart hbs-carousel.service
 
 echo ""
 echo "✅ Installation complete!"
-echo ""
 echo "HBS Backend: http://localhost:5000"
 echo "Carousel Menu: Running on display :0"
