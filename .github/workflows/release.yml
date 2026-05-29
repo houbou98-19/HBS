@@ -199,7 +199,10 @@ jobs:
         run: |
           cd installer/linux/carousel
           pyinstaller carousel.spec --distpath ./dist --workpath ./build
-          tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz -C dist hbs-carousel/
+          mkdir -p carousel-pkg
+          cp dist/hbs-carousel carousel-pkg/
+          cp ../../../install.sh carousel-pkg/
+          tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz carousel-pkg/
       
       - name: Upload Carousel Release
         uses: softprops/action-gh-release@v1
