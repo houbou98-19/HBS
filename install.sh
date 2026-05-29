@@ -32,9 +32,36 @@ fi
 # Create install directory if needed
 mkdir -p "$INSTALL_DIR"
 
+# Backup existing configs
+if [ -f "$INSTALL_DIR/config.json" ]; then
+    cp "$INSTALL_DIR/config.json" "$INSTALL_DIR/config.json.bak"
+fi
+if [ -f "$INSTALL_DIR/carousel_config.json" ]; then
+    cp "$INSTALL_DIR/carousel_config.json" "$INSTALL_DIR/carousel_config.json.bak"
+fi
+
 # Copy all files from package
 echo "📋 Copying files..."
 cp -r "$SCRIPT_DIR"/* "$INSTALL_DIR/"
+
+# Restore user configs if they existed
+if [ -f "$INSTALL_DIR/config.json.bak" ]; then
+    mv "$INSTALL_DIR/config.json.bak" "$INSTALL_DIR/config.json"
+    echo "✓ Preserved existing HBS config"
+fi
+if [ -f "$INSTALL_DIR/carousel_config.json.bak" ]; then
+    mv "$INSTALL_DIR/carousel_config.json.bak" "$INSTALL_DIR/carousel_config.json"
+    echo "✓ Preserved existing Carousel config"
+fi
+
+# Also preserve ~/.hbs configs
+mkdir -p ~/.hbs
+if [ -f "$INSTALL_DIR/config.json" ] && [ ! -f ~/.hbs/config.json ]; then
+    cp "$INSTALL_DIR/config.json" ~/.hbs/config.json
+fi
+if [ -f "$INSTALL_DIR/carousel_config.json" ] && [ ! -f ~/.hbs/carousel_config.json ]; then
+    cp "$INSTALL_DIR/carousel_config.json" ~/.hbs/carousel_config.json
+fi
 
 # Set permissions for entire directory
 chmod -R 755 "$INSTALL_DIR"
