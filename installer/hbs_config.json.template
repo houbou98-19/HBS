@@ -1,0 +1,6 @@
+{
+  "version": "3.0.0",
+  "port": 5000,
+  "display_name": "HB SYSTEM",
+  "roms_root": "/mnt/hbs-roms"
+}

@@ -1,0 +1,5 @@
+{
+  "api_url": "http://localhost:5000",
+  "steamgriddb_api_key": "",
+  "covers_dir": "~/.hbs/covers"
+}
