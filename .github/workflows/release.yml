@@ -169,13 +169,12 @@ jobs:
           cp dist/hbs hbs-pkg/
           cp ../../../install.sh hbs-pkg/
           tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-pkg/
-          mv hbs-${{ needs.version.outputs.new-version }}.tar.gz ../../../../
       
       - name: Upload HBS Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.version.outputs.new-version }}
-          files: hbs-${{ needs.version.outputs.new-version }}.tar.gz
+          files: installer/linux/hbs/hbs-${{ needs.version.outputs.new-version }}.tar.gz
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
 
