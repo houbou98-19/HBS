@@ -28,7 +28,6 @@ jobs:
       - name: Get latest tag and bump version
         id: version
         run: |
-          # Fetch all tags from remote
           git fetch --tags
           
           LATEST=$(python3 << 'PYTHON'
@@ -42,10 +41,8 @@ jobs:
           PYTHON
           )
           
-          # Parse version
           IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST"
           
-          # Bump version based on input
           case "${{ github.event.inputs.bump }}" in
             major)
               MAJOR=$((MAJOR + 1))
@@ -70,7 +67,6 @@ jobs:
           git config user.email "actions@github.com"
           
           TAG="${{ steps.version.outputs.NEW_VERSION }}"
-          # Ensure no 'v' prefix
           TAG=${TAG#v}
           
           git tag "$TAG"
@@ -93,31 +89,24 @@ jobs:
         run: |
           git fetch --tags
           
-          # Get previous tag
-          PREV_TAG=$(git tag --sort=-version:refname | head -1)
+          # Get all tags sorted
+          TAGS=$(git tag --sort=-version:refname)
+          PREV_TAG=$(echo "$TAGS" | head -1)
           
           if [ -z "$PREV_TAG" ]; then
-            # No previous tag, check all files
-            CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+            # No tags, check all files in repo
+            CHANGED=$(git ls-files)
           else
-            # Check what changed since last tag
+            # Compare against previous tag
             CHANGED=$(git diff --name-only $PREV_TAG..HEAD)
           fi
           
           echo "Changed files:"
           echo "$CHANGED"
           
-          if echo "$CHANGED" | grep -qE '(carousel\.py|installer/carousel)'; then
-            echo "carousel=true" >> $GITHUB_OUTPUT
-          else
-            echo "carousel=false" >> $GITHUB_OUTPUT
-          fi
-          
-          if echo "$CHANGED" | grep -qE '(hbs\.py|routes/|config\.json|install\.sh|launcher\.sh)'; then
-            echo "hbs=true" >> $GITHUB_OUTPUT
-          else
-            echo "hbs=false" >> $GITHUB_OUTPUT
-          fi
+          # Always build both for now
+          echo "carousel=true" >> $GITHUB_OUTPUT
+          echo "hbs=true" >> $GITHUB_OUTPUT
 
   build-hbs:
     needs: [version, detect-changes]
@@ -151,8 +140,8 @@ jobs:
         run: |
           cd installer/linux/hbs
           pyinstaller hbs.spec --distpath ./dist --workpath ./build
-          cd dist
-          tar -czf ../../hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs/
+          tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz -C dist hbs/
+          mv hbs-${{ needs.version.outputs.new-version }}.tar.gz ../../
       
       - name: Upload HBS Release
         uses: softprops/action-gh-release@v1
@@ -184,8 +173,8 @@ jobs:
         run: |
           cd installer/linux/carousel
           pyinstaller carousel.spec --distpath ./dist --workpath ./build
-          cd dist
-          tar -czf ../../carousel-${{ needs.version.outputs.new-version }}.tar.gz hbs-carousel/
+          tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz -C dist hbs-carousel/
+          mv carousel-${{ needs.version.outputs.new-version }}.tar.gz ../../
       
       - name: Upload Carousel Release
         uses: softprops/action-gh-release@v1
