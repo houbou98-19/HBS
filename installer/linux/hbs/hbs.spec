@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 a = Analysis(
-    ['../../../hbs.py'],  # Point to root
+    ['../../../hbs.py'],
     pathex=[],
     binaries=[],
     datas=[('../../../config.json', '.'), ('../../../routes', 'routes'), ('../../../installer/games_database.json.template', '.')],
@@ -33,15 +33,4 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='hbs'
 )

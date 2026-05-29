@@ -165,10 +165,10 @@ jobs:
         run: |
           cd installer/linux/hbs
           pyinstaller hbs.spec --distpath ./dist --workpath ./build
-          mkdir -p hbs-package/bin
-          cp dist/hbs hbs-package/bin/
-          cp ../../../install.sh hbs-package/
-          tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-package/
+          mkdir -p hbs-pkg
+          cp dist/hbs hbs-pkg/
+          cp ../../../install.sh hbs-pkg/
+          tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-pkg/
           mv hbs-${{ needs.version.outputs.new-version }}.tar.gz ../../../../
       
       - name: Upload HBS Release
