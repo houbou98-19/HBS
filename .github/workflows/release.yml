@@ -168,6 +168,7 @@ jobs:
           mkdir -p hbs-pkg
           cp dist/hbs hbs-pkg/
           cp ../../../config.json hbs-pkg/
+          cp ../../../launcher.sh hbs-pkg/
           cp ../../../install.sh hbs-pkg/
           tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-pkg/
       
