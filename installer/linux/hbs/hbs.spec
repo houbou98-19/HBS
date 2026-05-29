@@ -1,9 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
 a = Analysis(
-    ['hbs.py'],
+    ['../../../hbs.py'],  # Point to root
     pathex=[],
     binaries=[],
-    datas=[('config.json', '.'), ('routes', 'routes'), ('games_database.json', '.')],
+    datas=[('../../../config.json', '.'), ('../../../routes', 'routes'), ('../../../games_database.json', '.')],
     hiddenimports=['flask', 'requests'],
     hookspath=[],
     hooksconfig={},
