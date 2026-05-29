@@ -175,7 +175,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.version.outputs.new-version }}
-          files: installer/linux/hbs/hbs-${{ needs.version.outputs.new-version }}.tar.gz
+          files: hbs-${{ needs.version.outputs.new-version }}.tar.gz
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
 
