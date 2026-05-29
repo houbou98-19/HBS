@@ -65,7 +65,19 @@ def launch_game(launcher_script):
     """Launch a game using the launcher script"""
     launcher_path = os.path.join(os.path.dirname(__file__), "launcher.sh")
     try:
-        subprocess.Popen([launcher_path, launcher_script])
+        print(f"Launching: {launcher_script}")
+        print(f"Launcher path: {launcher_path}")
+        
+        if not os.path.exists(launcher_path):
+            print(f"Error: launcher.sh not found at {launcher_path}")
+            return False
+        
+        proc = subprocess.Popen(
+            [launcher_path, launcher_script],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        print(f"Process started with PID {proc.pid}")
         return True
     except Exception as e:
         print(f"Error launching game: {e}")
