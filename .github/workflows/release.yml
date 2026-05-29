@@ -164,8 +164,8 @@ jobs:
       - name: Build HBS
         run: |
           cd installer/linux/hbs
-          pyinstaller hbs.spec --distpath ./dist --workpath ./build
-          tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz
+          pyinstaller hbs.spec --distpath ./dist --workpath ./build --onedir
+          tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz -C dist hbs/
           mv hbs-${{ needs.version.outputs.new-version }}.tar.gz ../../../../
       
       - name: Upload HBS Release
@@ -197,8 +197,7 @@ jobs:
         run: |
           cd installer/linux/carousel
           pyinstaller carousel.spec --distpath ./dist --workpath ./build
-          tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz .
-          mv carousel-${{ needs.version.outputs.new-version }}.tar.gz ../../../../
+          tar -czf carousel-${{ needs.version.outputs.new-version }}.tar.gz -C dist hbs-carousel/
       
       - name: Upload Carousel Release
         uses: softprops/action-gh-release@v1
