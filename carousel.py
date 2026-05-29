@@ -7,9 +7,36 @@ import requests
 import time
 import json
 import os
+import sys
 
-def load_config():
-    """Load configuration and version"""
+def load_carousel_config():
+    """Load carousel configuration from file"""
+    config_paths = [
+        os.path.expanduser("~/.hbs/carousel_config.json"),  # Linux
+        os.path.expanduser("~/AppData/Roaming/HBS/carousel_config.json"),  # Windows
+        os.path.join(os.path.dirname(__file__), "carousel_config.json"),  # Local
+    ]
+    
+    for config_path in config_paths:
+        if os.path.exists(config_path):
+            try:
+                with open(config_path) as f:
+                    config = json.load(f)
+                    print(f"✓ Loaded config from {config_path}")
+                    return config
+            except Exception as e:
+                print(f"Warning: Could not load {config_path}: {e}")
+    
+    # Default fallback
+    print("Warning: No carousel config found, using defaults")
+    return {
+        "api_url": "http://localhost:5000",
+        "steamgriddb_api_key": "",
+        "covers_dir": os.path.expanduser("~/.hbs/covers")
+    }
+
+def load_app_config():
+    """Load HBS app configuration for version info"""
     try:
         config_file = os.path.join(os.path.dirname(__file__), "config.json")
         with open(config_file) as f:
@@ -17,25 +44,35 @@ def load_config():
     except Exception as e:
         print(f"Warning: Could not load config.json: {e}")
         return {"version": "unknown"}
+    
+def get_hbs_version(api_url):
+    """Fetch HBS version from API"""
+    try:
+        response = requests.get(f"{api_url}/api/status", timeout=5)
+        data = response.json()
+        return data.get("version", "unknown")
+    except Exception as e:
+        print(f"Warning: Could not fetch version from API: {e}")
+        return "unknown"
 
-def load_games():
+def load_games(api_url):
     """Load games from HBS API"""
     try:
-        response = requests.get("http://localhost:5000/api/games")
+        response = requests.get(f"{api_url}/api/games", timeout=5)
         data = response.json()
         return data.get("games", [])
     except Exception as e:
-        print(f"Error loading games: {e}")
+        print(f"Error loading games from {api_url}: {e}")
         return []
 
-def fetch_game_covers(api_key):
+def fetch_game_covers(api_url, api_key, covers_dir):
     """Fetch and cache game cover images from SteamGridDB"""
-    import subprocess
+    if not api_key:
+        print("No SteamGridDB API key configured, skipping cover fetch")
+        return
     
-    covers_dir = os.path.expanduser("~/.hbs/covers")
     os.makedirs(covers_dir, exist_ok=True)
-    
-    games = load_games()
+    games = load_games(api_url)
     
     for game in games:
         game_id = game['id']
@@ -92,17 +129,12 @@ def fetch_game_covers(api_key):
         
         except Exception as e:
             print(f"  ✗ Error fetching {game['name']}: {e}")
-    
-    # Save updated games with cover paths
-    from config import save_games
-    save_games(games)
 
 class CarouselMenu(pyglet.window.Window):
     """Main carousel menu window"""
     
-    def __init__(self):
-        # Get actual screen resolution from environment or use fallback
-        import os
+    def __init__(self, carousel_config):
+        # Get screen resolution from environment or use fallback
         width = int(os.environ.get('SCREEN_WIDTH', 1920))
         height = int(os.environ.get('SCREEN_HEIGHT', 1080))
         
@@ -110,15 +142,20 @@ class CarouselMenu(pyglet.window.Window):
         self.set_caption("HB SYSTEM")
         self.set_location(0, 0)
         
-        app_config = load_config()
-        self.version = app_config.get("version", "unknown")
+        # Store configs
+        self.carousel_config = carousel_config
+        self.api_url = carousel_config.get('api_url', 'http://localhost:5000')
+        self.covers_dir = os.path.expanduser(carousel_config.get('covers_dir', '~/.hbs/covers'))
         
-        api_key = os.environ.get('STEAMGRIDDB_API_KEY')
+        self.version = get_hbs_version(self.api_url)
+        
+        # Fetch covers if API key is configured
+        api_key = carousel_config.get('steamgriddb_api_key', '')
         if api_key:
             print("Fetching game covers from SteamGridDB...")
-            fetch_game_covers(api_key)
+            fetch_game_covers(self.api_url, api_key, self.covers_dir)
         
-        self.games = load_games()
+        self.games = load_games(self.api_url)
         self.current_index = 0
         self.last_launch_time = 0
         self.launch_status = ""
@@ -128,10 +165,10 @@ class CarouselMenu(pyglet.window.Window):
         self.animation_time = 0
         self.animation_duration = 0.3  # seconds
         self.prev_index = 0
-
         self.y_offset = 100
         
         print(f"HB SYSTEM v{self.version}")
+        print(f"API URL: {self.api_url}")
         print(f"Loaded {len(self.games)} games")
         print(f"Resolution: {self.width}x{self.height}")
     
@@ -359,19 +396,6 @@ class CarouselMenu(pyglet.window.Window):
             )
             status_label.draw()
     
-    def draw_instructions(self):
-        """Draw control instructions"""
-        instructions = pyglet.text.Label(
-            "DPAD LEFT/RIGHT to navigate | A to launch | MENU to exit",
-            font_name="Press Start 2P",
-            font_size=12,
-            x=self.width // 2,
-            y=60,
-            anchor_x='center',
-            color=(100, 100, 100, 150)
-        )
-        instructions.draw()
-    
     def on_key_press(self, symbol, modifiers):
         """Handle keyboard input"""
         if symbol == pyglet.window.key.LEFT:
@@ -426,7 +450,7 @@ class CarouselMenu(pyglet.window.Window):
         self.status_time = current_time
 
         try:
-            response = requests.get(f"http://localhost:5000/launch?id={game_id}")
+            response = requests.get(f"{self.api_url}/launch?id={game_id}")
             result = response.json()
             if result.get('status') == 'launching':
                 self.launch_status = f"Started {game['name']}!"
@@ -445,7 +469,8 @@ def update(dt):
 def main():
     """Start carousel menu"""
     global menu
-    menu = CarouselMenu()
+    carousel_config = load_carousel_config()
+    menu = CarouselMenu(carousel_config)
     pyglet.clock.schedule(update)
     pyglet.app.run()
 

@@ -79,8 +79,20 @@ def handle_launch_game(params):
     
     return {"status": "launching", "game": game["name"]}, 200
 
+def handle_get_status(params):
+    """GET /api/status - Returns HBS system status and version"""
+    from config import load_config
+    
+    config = load_config()
+    return {
+        "status": "ok",
+        "version": config.get("version", "unknown"),
+        "hbs_name": config.get("display_name", "HB SYSTEM")
+    }, 200
+
 ROUTES = {
     ("GET", "/api/games"): handle_get_games,
     ("POST", "/api/games"): handle_post_games,
     ("GET", "/launch"): handle_launch_game,
+    ("GET", "/api/status"): handle_get_status,
 }
