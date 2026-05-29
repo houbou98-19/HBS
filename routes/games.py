@@ -62,7 +62,10 @@ def handle_launch_game(params):
     
     game_id = params.get("id", [None])[0]
     
+    print(f"Launch request for game: {game_id}")
+    
     if not game_id:
+        print("Error: No game ID provided")
         return {"error": "Missing game id"}, 400
     
     db = load_games_database()
@@ -70,14 +73,18 @@ def handle_launch_game(params):
     game = next((g for g in games if g["id"] == game_id), None)
     
     if not game:
+        print(f"Error: Game not found: {game_id}")
         return {"error": "Game not found"}, 404
     
     launcher_name = game.get("launcher")
+    print(f"Launcher name: {launcher_name}")
     
     if not launcher_name:
+        print("Error: No launcher configured")
         return {"error": "Invalid game data"}, 400
     
     if not launch_game(launcher_name):
+        print(f"Error: launch_game() returned False")
         return {"error": "Failed to launch game"}, 500
     
     # Update last_played and playtime
@@ -89,6 +96,7 @@ def handle_launch_game(params):
     
     save_games({"games": games})
     
+    print(f"Successfully launched: {game['name']}")
     return {"status": "launching", "game": game["name"]}, 200
 
 def handle_get_status(params):
