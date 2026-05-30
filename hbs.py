@@ -63,15 +63,9 @@ VERSION = CONFIG.get("version", "unknown")
 
 def launch_game(launcher_script):
     """Launch a game using the launcher script"""
-    # Get launcher.sh from the binary's bundle directory
-    if getattr(sys, 'frozen', False):
-        # Running as PyInstaller binary
-        bundle_dir = sys._MEIPASS
-    else:
-        # Running as Python script
-        bundle_dir = os.path.dirname(__file__)
-    
-    launcher_path = os.path.join(bundle_dir, "launcher.sh")
+    # launcher.sh is in the same directory as the hbs binary
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    launcher_path = os.path.join(script_dir, "launcher.sh")
     
     try:
         print(f"Launching: {launcher_script}")
