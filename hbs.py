@@ -63,7 +63,6 @@ VERSION = CONFIG.get("version", "unknown")
 
 def launch_game(launcher_script):
     """Launch a game using the launcher script"""
-    # launcher.sh is in the same directory as the hbs binary
     script_dir = os.path.dirname(os.path.abspath(__file__))
     launcher_path = os.path.join(script_dir, "launcher.sh")
     
@@ -74,6 +73,11 @@ def launch_game(launcher_script):
         if not os.path.exists(launcher_path):
             print(f"Error: launcher.sh not found at {launcher_path}")
             return False
+        
+        # Ensure launcher.sh is executable
+        import stat
+        st = os.stat(launcher_path)
+        os.chmod(launcher_path, st.st_mode | stat.S_IEXEC)
         
         proc = subprocess.Popen(
             [launcher_path, launcher_script],
