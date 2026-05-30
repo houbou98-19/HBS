@@ -6,8 +6,7 @@ a = Analysis(
     datas=[
         ('../../../config.json', '.'),
         ('../../../routes', 'routes'),
-        ('../../../games_database.json', '.'),
-        ('../../../launcher.sh', '.'),  # Add this line
+        ('../../../launcher.sh', '.'),
     ],
     hiddenimports=['flask', 'requests'],
     hookspath=[],
