@@ -1,147 +1,311 @@
-# HB System - Retro Gaming Launcher
+# HBS - Home Brew System
+## Retro Gaming Launcher with Arcade Carousel UI
 
-A self-hosted, retro gaming arcade system with a web-based launcher and support for multiple emulators.
+A self-hosted, retro gaming arcade system with a **Pyglet-based carousel menu**, **HTTP API backend**, and support for multiple emulators.
 
-## Features
+## ✨ Features
 
-- 🎮 Multi-platform emulation (NES, SNES, N64, GBA, GBC, NDS, 3DS, Wii, Switch)
-- 🌐 Web-based launcher with retro aesthetic
-- 🎮 RetroArch menu launcher
-- 🏷️ NFC tag integration (planned)
-- 👨‍👩‍👧 Multi-player support
-- 🖥️ Kiosk mode
+- 🎮 **Multi-platform emulation** - NES, SNES, N64, GBA, GBC, NDS, 3DS, Wii, Switch
+- 🎡 **Arcade carousel UI** - Retro-style menu with game covers, animations, and Press Start 2P font
+- 🕹️ **Controller support** - Full gamepad/joystick integration for navigation and launching
+- 🖼️ **SteamGridDB integration** - Automatic game cover art fetching and caching
+- 📊 **Playtime tracking** - Track hours played and last played timestamp per game
+- 🌐 **REST API** - Complete HTTP API for game management and launching
+- 🚀 **Automated deployment** - GitHub Actions CI/CD pipeline with one-command releases
+- 📦 **Cross-platform** - Linux binaries with systemd service management
 
-## Quick Start
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│           Carousel Menu (Pyglet)            │
+│  - Game selection with cover art            │
+│  - Controller input handling                │
+│  - HTTP API calls to backend                │
+└──────────────┬──────────────────────────────┘
+               │ HTTP REST API
+┌──────────────▼──────────────────────────────┐
+│         HBS Backend (Python HTTP)           │
+│  - Game database management                 │
+│  - Game launching via launcher scripts      │
+│  - Playtime tracking                        │
+│  - System status & versioning               │
+└──────────────┬──────────────────────────────┘
+               │ Subprocess
+┌──────────────▼─────────────────────────────────────────────────┐
+│        Game Launchers (Bash Scripts)                           │
+│  - Kill previous processes                                     │
+│  - Launch games via Steam/RetroArch (for controller support)   │
+│  - Handle display & authorization                              │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## 🚀 Quick Start
 
 ### Requirements
-- Python 3.8+
-- RetroArch
-- dbus-x11 (if on ubuntu)
+
+- **Ubuntu 20.04+** (tested on 22.04 LTS)
+- **RetroArch** - Multi-emulator frontend
+- **Eden** - Switch Emulator
+- **dbus-x11** - D-Bus utilities
+- **Python 3.8+** - Runtime for development
 - ROMs of games you own
 
-### Setup (Ubuntu)
+### Installation
 
-1. **Download latest release**
+```bash
+cd ~/hbs
+wget https://github.com/houbou98-19/hbs/releases/download/4.1.9/hbs-4.1.9.tar.gz
+tar -xzf hbs-4.1.9.tar.gz
+cd hbs-pkg
+sudo bash install.sh
+```
+
+### Setup
+
+1. **Configure Carousel** (optional)
    ```bash
-   cd ~/hbs
-   bash install-newest-release.sh
+   nano ~/.hbs/carousel_config.json
+   ```
+   ```json
+   {
+     "api_url": "http://localhost:5000",
+     "steamgriddb_api_key": "YOUR_API_KEY",
+     "covers_dir": "~/.hbs/covers"
+   }
+   ```
+   Get your API key at https://www.steamgriddb.com/profile/preferences
+
+2. **Add Games** - Games are stored in `~/.hbs/games_database.json`. Format:
+   ```json
+   {
+     "games": [
+       {
+         "id": "pokemon-emerald",
+         "name": "Pokemon Emerald",
+         "platform": "GBA",
+         "launcher": "pokemon-emerald.sh",
+         "playtime": 0,
+         "last_played": null,
+         "cover_path": "~/.hbs/covers/pokemon-emerald.png"
+       }
+     ]
+   }
    ```
 
-2. **Access the launcher**
+3. **Create Launcher Scripts** - Each game needs a launcher in `~/launchers/`:
+   ```bash
+   #!/bin/bash
+   steam -applaunch 1118310 -L mgba_libretro.so /mnt/hbs-roms/gba/pokemon-emerald.gba
    ```
-   http://localhost:5000
+
+4. **Start Services**
+   ```bash
+   sudo systemctl start hbs.service hbs-carousel.service
    ```
 
-3. **Add games**
-   - Visit http://localhost:5000/add
-   - Select platform and ROM
-   - Game appears on splash screen
+## 📡 API Endpoints
 
-4. **Launch RetroArch menu**
-   ```
-   curl http://localhost:5000/menu
-   ```
-   Or visit http://localhost:5000/menu in browser
+### Status
+- `GET /api/status` - System status and version
+  ```json
+  {
+    "status": "ok",
+    "version": "4.1.9",
+    "hbs_name": "HB SYSTEM"
+  }
+  ```
 
-### Controller Setup
-
-After launching RetroArch:
-1. Main Menu → Online Updater → Update Autoconfig Profiles
-2. Restart RetroArch
-3. Your controller will auto-configure, but may require rebinding in some cases
-
-## Project Structure
-
-```
-hbs/
-├── hbs.py              # Main server
-├── config.py           # Configuration management
-├── launcher.sh         # Game launcher script
-├── splash.html         # Home screen
-├── add.html            # Add game form
-├── config.json         # App config (version, ROMs path, etc.)
-├── routes/
-│   ├── __init__.py
-│   ├── games.py        # Game CRUD + launching
-│   ├── pages.py        # HTML page serving
-│   └── system.py       # Status endpoint
-├── install.sh          # Installation script
-├── README.md
-└── .gitignore
-```
-
-## API Endpoints
-
-- `GET /` - Splash screen (home)
-- `GET /add` - Add game form
-- `GET /api/status` - System status & version
+### Games
 - `GET /api/games` - List all games
-- `GET /api/roms?platform=PLATFORM` - List ROMs for platform
+  ```json
+  {
+    "games": [...],
+    "count": 15
+  }
+  ```
+
 - `POST /api/games` - Add new game
-- `GET /menu` - Launch RetroArch menu
-- `GET /launch?id=GAME_ID` - Launch specific game (coming soon)
+  ```json
+  {
+    "id": "game-id",
+    "name": "Game Name",
+    "launcher": "game-launcher.sh"
+  }
+  ```
 
-## Configuration
+### Launching
+- `GET /launch?id=GAME_ID` - Launch a game (updates playtime)
+  ```json
+  {
+    "status": "launching",
+    "game": "Pokemon Emerald"
+  }
+  ```
 
-App config stored in config.json:
+## ⚙️ Configuration
+
+### HBS Backend Config
+`~/.hbs/config.json`:
 ```json
 {
-  "version": "2.1.7",
-  "roms_root": "/mnt/hbs-roms",
+  "version": "4.1.9",
   "port": 5000,
-  "display_name": "HB SYSTEM"
+  "display_name": "HB SYSTEM",
+  "roms_root": "/mnt/hbs-roms"
 }
 ```
 
-Games stored in ~/.hbs/games.json:
+### Carousel Config
+`~/.hbs/carousel_config.json`:
 ```json
-[
-  {
-    "id": "pokemon-emerald",
-    "name": "Pokemon Emerald",
-    "platform": "GBA",
-    "rom": "/mnt/hbs-roms/gba/pokemon-emerald.gba",
-    "playtime": 3600,
-    "last_played": "2026-04-29T12:30:00"
-  }
-]
+{
+  "api_url": "http://localhost:5000",
+  "steamgriddb_api_key": "",
+  "covers_dir": "~/.hbs/covers"
+}
 ```
 
-## Development
+## 🎮 Controller Setup
 
-We use semantic versioning and feature branches:
+1. Pair your controller via Bluetooth or USB
+2. Start carousel - it auto-detects compatible controllers
+3. **D-Pad/Stick Left/Right** - Navigate carousel
+4. **A Button** (or Space) - Launch game
 
-- `dev` - releases (tagged v1.0.0, v1.1.0, etc.)
-- `feature/*` - Feature branches
+Controllers supported:
+- 8BitDo controllers
+- Steam controller
+- Generic gamepads (via Linux input)
 
-### Creating a Feature Branch
+## 📁 Project Structure
 
-Make PR onto dev if you wanna add a feature.
+```
+hbs/
+├── hbs.py                    # HTTP API backend
+├── carousel.py               # Pyglet carousel UI
+├── launcher.sh               # Game launcher script
+├── routes/
+│   ├── __init__.py           # Route registration
+│   └── games.py              # Game API endpoints
+├── installer/
+│   ├── linux/
+│   │   ├── hbs/
+│   │   │   ├── hbs.spec      # PyInstaller spec for backend
+│   │   │   └── build.sh
+│   │   └── carousel/
+│   │       ├── carousel.spec # PyInstaller spec for UI
+│   │       └── build.sh
+│   └── *.template            # Config templates
+├── .github/
+│   └── workflows/
+│       └── release.yml       # CI/CD pipeline
+├── install.sh                # Installation script
+└── README.md
+```
 
+## 🔧 Development
 
-### New Release
+### Building from Source
 
-This is done by setting a new tag following the semantic versioning to. GH workflow will automatically build from latest dev branch and post in releases
+1. **Clone repo**
+   ```bash
+   git clone https://github.com/houbou98-19/hbs.git
+   cd hbs
+   ```
 
-### Versioning
+2. **Install dev dependencies**
+   ```bash
+   pip install pyglet requests flask
+   ```
 
-Uses semantic versioning:
-- `2.0.0` → `2.0.1` (patch fix)
-- `2.0.1` → `2.1.0` (minor feature)
-- `2.1.0` → `3.0.0` (major refactor)
+3. **Run locally**
+   ```bash
+   python3 hbs.py      # Terminal 1
+   python3 carousel.py # Terminal 2 (if needed)
+   ```
 
-## Roadmap
+### Building Binaries
 
-- [x] Web-based game launcher
-- [x] RetroArch menu integration
-- [x] Modular route system
-- [x] CI/CD pipeline
-- [ ] Chromium kiosk fullscreen mode
-- [ ] Game launching with playtime tracking
-- [ ] Eden (Switch emulator) integration
-- [ ] NFC tag integration
-- [ ] Multiple save file management
+The project uses PyInstaller for binary packaging:
 
-## License
+```bash
+# HBS backend
+cd installer/linux/hbs
+pyinstaller hbs.spec --distpath ./dist --workpath ./build
+
+# Carousel UI
+cd installer/linux/carousel
+pyinstaller carousel.spec --distpath ./dist --workpath ./build
+```
+
+### Releasing
+
+1. Commit changes
+2. Push to dev branch
+3. Run release on Windows:
+   ```bash
+   ./release-local.sh
+   # Select: patch, minor, or major
+   # Workflow builds binaries and auto-deploys to Ubuntu
+   ```
+
+## 🐛 Troubleshooting
+
+### Games Won't Launch
+- Check `sudo journalctl -u hbs.service -f`
+- Verify launcher script exists: `ls ~/launchers/`
+- Test launcher manually: `bash ~/launchers/game.sh`
+
+### No Cover Art
+- Set `steamgriddb_api_key` in `~/.hbs/carousel_config.json`
+- Get key at https://www.steamgriddb.com/
+- Check covers downloaded: `ls ~/.hbs/covers/`
+
+### Carousel Freezes
+- Check `sudo journalctl -u hbs-carousel.service -f`
+- Verify HBS backend is running: `curl http://localhost:5000/api/status`
+- Kill and restart: `sudo systemctl restart hbs-carousel.service`
+
+### Display Issues
+- Set `SCREEN_WIDTH` and `SCREEN_HEIGHT` env vars in service file
+- Check resolution: `echo $SCREEN_WIDTH x $SCREEN_HEIGHT`
+
+## 📋 Systemd Services
+
+Both services run as the `hobo` user:
+
+```bash
+# View status
+sudo systemctl status hbs.service
+sudo systemctl status hbs-carousel.service
+
+# View logs
+sudo journalctl -u hbs.service -f
+sudo journalctl -u hbs-carousel.service -f
+
+# Restart
+sudo systemctl restart hbs.service hbs-carousel.service
+```
+
+## 🗺️ Roadmap
+
+- [x] Carousel UI with animations
+- [x] Game cover art from SteamGridDB
+- [x] Controller support
+- [x] Playtime tracking
+- [x] HTTP REST API
+- [x] Automated CI/CD pipeline
+- [x] Linux binary releases
+- [ ] Windows installer
+- [ ] Carousel Title Shine
+- [ ] Save state management
+- [ ] Game statistics dashboard
+- [ ] NFC tag integration (future)
+
+## 📄 License
 
 MIT License - see LICENSE file for details
+---
+
+**Made for 🎮 myself**
