@@ -169,7 +169,7 @@ jobs:
           cp dist/hbs hbs-pkg/
           cp ../../../config.json hbs-pkg/
           cp ../../../launcher.sh hbs-pkg/
-          cp ../../../install.sh hbs-pkg/
+          chmod +x hbs-pkg/launcher.sh
           tar -czf hbs-${{ needs.version.outputs.new-version }}.tar.gz hbs-pkg/
       
       - name: Upload HBS Release
