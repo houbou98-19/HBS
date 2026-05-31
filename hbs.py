@@ -5,61 +5,11 @@ Main HTTP server with modular routes
 import json
 import subprocess
 import os
+import stat
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from routes import get_route_handler
-
-def load_config():
-    """Load HBS configuration with bundled defaults"""
-    config = {}
-    
-    # Load bundled config first (for defaults like version)
-    bundled_path = os.path.join(os.path.dirname(__file__), "config.json")
-    if os.path.exists(bundled_path):
-        try:
-            with open(bundled_path) as f:
-                config = json.load(f)
-        except Exception as e:
-            print(f"Warning: Could not load bundled config: {e}")
-    
-    # Override with user config if it exists
-    user_path = os.path.expanduser("~/.hbs/config.json")
-    if os.path.exists(user_path):
-        try:
-            with open(user_path) as f:
-                user_config = json.load(f)
-                config.update(user_config)
-                print(f"✓ Loaded user config from {user_path}")
-        except Exception as e:
-            print(f"Warning: Could not load user config: {e}")
-    
-    return config
-
-def load_games_database():
-    """Load games database from local file or bundled template"""
-    db_paths = [
-        os.path.expanduser("~/.hbs/games_database.json"),  # User database
-        os.path.join(os.path.dirname(__file__), "games_database.json"),  # Local file
-        os.path.join(os.path.dirname(__file__), "games_database.json.template"),  # Bundled fallback
-    ]
-    
-    for db_path in db_paths:
-        if os.path.exists(db_path):
-            try:
-                with open(db_path) as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"Warning: Could not load {db_path}: {e}")
-    
-    # Default empty database
-    print("Warning: No games database found, using empty database")
-    return {"games": []}
-
-# Load config at startup
-CONFIG = load_config()
-PORT = CONFIG.get("port", 5000)
-DISPLAY_NAME = CONFIG.get("display_name", "HB SYSTEM")
-VERSION = CONFIG.get("version", "unknown")
+from config import load_config, load_games_database
 
 def launch_game(launcher_script):
     """Launch a game using the launcher script"""
@@ -75,7 +25,6 @@ def launch_game(launcher_script):
             return False
         
         # Ensure launcher.sh is executable
-        import stat
         st = os.stat(launcher_path)
         os.chmod(launcher_path, st.st_mode | stat.S_IEXEC)
         
@@ -113,7 +62,6 @@ class HBSHandler(BaseHTTPRequestHandler):
         path = parsed.path
         params = parse_qs(parsed.query)
         
-        # Get route handler
         handler = get_route_handler("GET", path)
         
         if not handler:
@@ -136,7 +84,6 @@ class HBSHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
         
-        # Get route handler
         handler = get_route_handler("POST", path)
         
         if not handler:
@@ -158,6 +105,12 @@ class HBSHandler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": "Invalid JSON"})
         except Exception as e:
             self.send_json(500, {"error": str(e)})
+
+# Load config at startup
+CONFIG = load_config()
+PORT = CONFIG.get("port", 5000)
+DISPLAY_NAME = CONFIG.get("display_name", "HB SYSTEM")
+VERSION = CONFIG.get("version", "unknown")
 
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", PORT), HBSHandler)

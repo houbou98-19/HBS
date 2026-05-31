@@ -5,42 +5,92 @@ import json
 import os
 
 CONFIG_DIR = os.path.expanduser("~/.hbs")
-GAMES_FILE = os.path.join(os.path.dirname(__file__), "games_database.json")
 
 def load_config():
-    """Load config from config.json in script directory"""
-    try:
-        config_file = os.path.join(os.path.dirname(__file__), "config.json")
-        with open(config_file) as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Warning: Could not load config.json: {e}")
-        return {
-            "version": "unknown",
-            "port": 5000,
-            "display_name": "HB SYSTEM"
-        }
+    """Load HBS configuration with bundled defaults"""
+    config = {}
+    
+    # Load bundled config first (for defaults like version)
+    bundled_path = os.path.join(os.path.dirname(__file__), "config.json")
+    if os.path.exists(bundled_path):
+        try:
+            with open(bundled_path) as f:
+                config = json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load bundled config: {e}")
+    
+    # Override with user config if it exists
+    user_path = os.path.join(CONFIG_DIR, "config.json")
+    if os.path.exists(user_path):
+        try:
+            with open(user_path) as f:
+                user_config = json.load(f)
+                config.update(user_config)
+                print(f"✓ Loaded user config from {user_path}")
+        except Exception as e:
+            print(f"Warning: Could not load user config: {e}")
+    
+    return config
 
-CONFIG = load_config()
-PORT = CONFIG.get("port", 5000)
+def load_games_database():
+    """Load games database from local file or bundled template"""
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    
+    db_paths = [
+        os.path.join(CONFIG_DIR, "games_database.json"),  # User database
+        os.path.join(os.path.dirname(__file__), "games_database.json"),  # Local file
+        os.path.join(os.path.dirname(__file__), "games_database.json.template"),  # Bundled fallback
+    ]
+    
+    for db_path in db_paths:
+        if os.path.exists(db_path):
+            try:
+                with open(db_path) as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Warning: Could not load {db_path}: {e}")
+    
+    # Default empty database
+    print("Warning: No games database found, using empty database")
+    return {"games": []}
+
+def save_games(games):
+    """Save games to database file"""
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    db_path = os.path.join(CONFIG_DIR, "games_database.json")
+    
+    try:
+        with open(db_path, "w") as f:
+            json.dump(games, f, indent=2)
+    except Exception as e:
+        print(f"Error: Could not save games database: {e}")
+
+def load_carousel_config():
+    """Load carousel configuration from file"""
+    config_paths = [
+        os.path.join(CONFIG_DIR, "carousel_config.json"),
+        os.path.join(os.path.dirname(__file__), "carousel_config.json"),
+    ]
+    
+    for config_path in config_paths:
+        if os.path.exists(config_path):
+            try:
+                with open(config_path) as f:
+                    config = json.load(f)
+                    print(f"✓ Loaded config from {config_path}")
+                    return config
+            except Exception as e:
+                print(f"Warning: Could not load {config_path}: {e}")
+    
+    # Default fallback
+    print("Warning: No carousel config found, using defaults")
+    return {
+        "api_url": "http://localhost:5000",
+        "steamgriddb_api_key": "",
+        "covers_dir": os.path.join(CONFIG_DIR, "covers")
+    }
 
 def get_version():
     """Get version from config"""
-    return CONFIG.get("version", "unknown")
-
-def ensure_config():
-    """Create config directory if needed"""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-
-def load_games():
-    """Load games from JSON file"""
-    try:
-        with open(GAMES_FILE) as f:
-            return json.load(f)
-    except:
-        return []
-
-def save_games(games):
-    """Save games to JSON file"""
-    with open(GAMES_FILE, "w") as f:
-        json.dump(games, f, indent=2)
+    config = load_config()
+    return config.get("version", "unknown")

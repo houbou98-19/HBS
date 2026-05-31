@@ -2,26 +2,8 @@
 HB System - Games Routes
 Game management and launching
 """
-import os
-import json
 from datetime import datetime
-
-def load_games_database():
-    """Load games database (imported from hbs module)"""
-    from hbs import load_games_database
-    return load_games_database()
-
-def save_games(games):
-    """Save games to database file"""
-    db_paths = [
-        os.path.expanduser("~/.hbs/games_database.json"),
-        os.path.join(os.path.dirname(__file__), "..", "games_database.json"),
-    ]
-    
-    # Save to user database location first
-    os.makedirs(os.path.expanduser("~/.hbs"), exist_ok=True)
-    with open(db_paths[0], "w") as f:
-        json.dump(games, f, indent=2)
+from config import load_games_database, save_games, load_config
 
 def handle_get_games(params):
     """GET /api/games - Returns list of all games"""
@@ -52,7 +34,7 @@ def handle_post_games(body):
         "last_played": None
     })
     
-    save_games({"games": games})
+    save_games(games)
     
     return {"status": "added", "game": body["name"]}, 201
 
@@ -94,19 +76,19 @@ def handle_launch_game(params):
             g["playtime"] = g.get("playtime", 0) + 1
             break
     
-    save_games({"games": games})
+    save_games(games)
     
     print(f"Successfully launched: {game['name']}")
     return {"status": "launching", "game": game["name"]}, 200
 
 def handle_get_status(params):
     """GET /api/status - Returns HBS system status and version"""
-    from hbs import CONFIG
+    config = load_config()
     
     return {
         "status": "ok",
-        "version": CONFIG.get("version", "unknown"),
-        "hbs_name": CONFIG.get("display_name", "HB SYSTEM")
+        "version": config.get("version", "unknown"),
+        "hbs_name": config.get("display_name", "HB SYSTEM")
     }, 200
 
 ROUTES = {

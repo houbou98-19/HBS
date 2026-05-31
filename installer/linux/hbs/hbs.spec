@@ -4,9 +4,10 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
+        ('../../../config.py', '.'),
         ('../../../config.json', '.'),
-        ('../../../routes', 'routes'),
         ('../../../launcher.sh', '.'),
+        ('../../../routes', 'routes'),
     ],
     hiddenimports=['flask', 'requests'],
     hookspath=[],

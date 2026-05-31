@@ -8,43 +8,8 @@ import time
 import json
 import os
 import sys
+from config import load_carousel_config
 
-def load_carousel_config():
-    """Load carousel configuration from file"""
-    config_paths = [
-        os.path.expanduser("~/.hbs/carousel_config.json"),  # Linux
-        os.path.expanduser("~/AppData/Roaming/HBS/carousel_config.json"),  # Windows
-        os.path.join(os.path.dirname(__file__), "carousel_config.json"),  # Local
-    ]
-    
-    for config_path in config_paths:
-        if os.path.exists(config_path):
-            try:
-                with open(config_path) as f:
-                    config = json.load(f)
-                    print(f"✓ Loaded config from {config_path}")
-                    return config
-            except Exception as e:
-                print(f"Warning: Could not load {config_path}: {e}")
-    
-    # Default fallback
-    print("Warning: No carousel config found, using defaults")
-    return {
-        "api_url": "http://localhost:5000",
-        "steamgriddb_api_key": "",
-        "covers_dir": os.path.expanduser("~/.hbs/covers")
-    }
-
-def load_app_config():
-    """Load HBS app configuration for version info"""
-    try:
-        config_file = os.path.join(os.path.dirname(__file__), "config.json")
-        with open(config_file) as f:
-            return json.load(f)
-    except Exception as e:
-        print(f"Warning: Could not load config.json: {e}")
-        return {"version": "unknown"}
-    
 def get_hbs_version(api_url):
     """Fetch HBS version from API"""
     try:
@@ -145,7 +110,7 @@ class CarouselMenu(pyglet.window.Window):
         # Store configs
         self.carousel_config = carousel_config
         self.api_url = carousel_config.get('api_url', 'http://localhost:5000')
-        self.covers_dir = os.path.expanduser(carousel_config.get('covers_dir', '~/.hbs/covers'))
+        self.covers_dir = carousel_config.get('covers_dir', os.path.expanduser('~/.hbs/covers'))
         
         self.version = get_hbs_version(self.api_url)
         

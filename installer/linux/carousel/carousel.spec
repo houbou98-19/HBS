@@ -3,7 +3,10 @@ a = Analysis(
     ['../../../carousel.py'],  # Point to root
     pathex=[],
     binaries=[],
-    datas=[('../../../installer/carousel_config.json.template', '.')],
+    datas=[
+        ('../../../config.py', '.'),
+        ('../../../carousel_config.json.template', '.'),
+    ],
     hiddenimports=['pyglet', 'requests'],
     hookspath=[],
     hooksconfig={},
