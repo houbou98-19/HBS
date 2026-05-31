@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product Id="*" Name="HB System" Language="1033" Version="!(bind.FileVersion.hbs.exe)" Manufacturer="HB System" UpgradeCode="12345678-1234-1234-1234-123456789012">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+        
+        <!-- Upgrade logic - allows seamless updates -->
+        <MajorUpgrade DowngradeErrorMessage="A newer version of HB System is already installed." AllowDowngrades="no" />
+        
+        <Media Id="1" Cabinet="hbs.cab" EmbedCab="yes" />
+        
+        <!-- UI -->
+        <UIRef Id="WixUI_InstallDir" />
+        <UIRef Id="WixUI_ErrorProgressText" />
+        
+        <Property Id="INSTALLFOLDER" Value="[ProgramFilesFolder]HBS" />
+        <Property Id="APPDATA_FOLDER" Value="[LocalAppDataFolder]" />
+        
+        <!-- Features -->
+        <Feature Id="ProductFeature" Title="HB System" Level="1">
+            <ComponentRef Id="HBSBinary" />
+            <ComponentRef Id="CarouselBinary" />
+            <ComponentRef Id="ConfigFiles" />
+            <ComponentRef Id="LauncherScript" />
+            <ComponentRef Id="AppDataFolder" />
+            <ComponentRef Id="StartMenuShortcuts" />
+        </Feature>
+        
+        <!-- Directory structure -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="HBS" />
+            </Directory>
+            
+            <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="HB System" />
+            </Directory>
+            
+            <Directory Id="LocalAppDataFolder">
+                <Directory Id="HBS_APPDATA" Name="HBS" />
+            </Directory>
+        </Directory>
+        
+        <!-- Components -->
+        <DirectoryRef Id="INSTALLFOLDER">
+            <Component Id="HBSBinary" Guid="11111111-1111-1111-1111-111111111111">
+                <File Id="hbs.exe" Source="hbs\hbs.exe" KeyPath="yes" Checksum="yes" />
+            </Component>
+            
+            <Component Id="CarouselBinary" Guid="22222222-2222-2222-2222-222222222222">
+                <File Id="hbs_carousel.exe" Source="carousel\hbs-carousel.exe" KeyPath="yes" Checksum="yes" />
+            </Component>
+            
+            <Component Id="ConfigFiles" Guid="33333333-3333-3333-3333-333333333333">
+                <File Id="config.json" Source="hbs\config.json" KeyPath="yes" />
+                <File Id="config.py" Source="hbs\config.py" />
+                <File Id="carousel_config.template" Source="carousel\carousel_config.json" />
+            </Component>
+            
+            <Component Id="LauncherScript" Guid="44444444-4444-4444-4444-444444444444">
+                <File Id="launcher.sh" Source="hbs\launcher.sh" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        
+        <!-- AppData folder creation (preserved on upgrade) -->
+        <DirectoryRef Id="HBS_APPDATA">
+            <Component Id="AppDataFolder" Guid="55555555-5555-5555-5555-555555555555">
+                <CreateFolder />
+                <RegistryValue Root="HKCU" Key="Software\HBS" Name="installed" Value="1" Type="integer" />
+            </Component>
+        </DirectoryRef>
+        
+        <!-- Start Menu shortcuts -->
+        <DirectoryRef Id="ApplicationProgramsFolder">
+            <Component Id="StartMenuShortcuts" Guid="66666666-6666-6666-6666-666666666666">
+                <Shortcut Id="CarouselShortcut" Name="HB System" Description="Personal Arcade" Target="[INSTALLFOLDER]hbs-carousel.exe" />
+                <Shortcut Id="UninstallShortcut" Name="Uninstall HB System" Description="Remove HB System" Target="[SystemFolder]msiexec.exe" Arguments="/x [ProductCode]" />
+                <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="HBSystem" Value="[INSTALLFOLDER]hbs-carousel.exe" Type="string" />
+            </Shortcut>
+        </DirectoryRef>
+    </Product>
+</Wix>

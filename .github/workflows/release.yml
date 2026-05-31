@@ -214,3 +214,74 @@ jobs:
           files: installer/linux/carousel/carousel-${{ needs.version.outputs.new-version }}.tar.gz
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    name: Build Windows Installer
+    needs: [version, detect-changes, generate-changelog]
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller requests pyglet
+      
+      - name: Install WiX Toolset
+        run: |
+          choco install wixtoolset -y
+      
+      - name: Update version in HBS config
+        run: |
+          python3 << 'PYTHON'
+          import json
+          with open('config.json') as f:
+              config = json.load(f)
+          config['version'] = '${{ needs.version.outputs.new-version }}'
+          with open('config.json', 'w') as f:
+              json.dump(config, f, indent=2)
+          PYTHON
+      
+      - name: Build HBS executable
+        run: |
+          cd installer/windows/hbs
+          pyinstaller hbs.spec --distpath ./dist --workpath ./build
+          mkdir hbs-pkg
+          copy dist\hbs.exe hbs-pkg\
+          copy ..\..\..\config.json hbs-pkg\
+          copy ..\..\..\config.py hbs-pkg\
+          copy ..\..\..\launcher.sh hbs-pkg\
+      
+      - name: Build Carousel executable
+        run: |
+          cd installer/windows/carousel
+          pyinstaller carousel.spec --distpath ./dist --workpath ./build
+          mkdir carousel-pkg
+          copy dist\hbs-carousel.exe carousel-pkg\
+          copy ..\..\carousel_config.json.template carousel-pkg\carousel_config.json
+      
+      - name: Prepare WiX build
+        run: |
+          cd installer/windows
+          mkdir build
+          xcopy hbs\hbs-pkg build\hbs\ /E /I /Y
+          xcopy carousel\carousel-pkg build\carousel\ /E /I /Y
+      
+      - name: Build MSI installer
+        run: |
+          cd installer/windows
+          candle.exe -o build\ hbs.wxs
+          light.exe -out HBS-${{ needs.version.outputs.new-version }}.msi build\hbs.wixobj
+      
+      - name: Upload MSI to release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.version.outputs.new-version }}
+          files: installer/windows/HBS-${{ needs.version.outputs.new-version }}.msi
+          body: "${{ needs.generate-changelog.outputs.changelog }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
