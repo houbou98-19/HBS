@@ -37,22 +37,22 @@ def load_games_database():
     os.makedirs(CONFIG_DIR, exist_ok=True)
     
     db_paths = [
-        os.path.join(CONFIG_DIR, "games_database.json"),  # User database
-        os.path.join(os.path.dirname(__file__), "games_database.json"),  # Local file
-        os.path.join(os.path.dirname(__file__), "games_database.json.template"),  # Bundled fallback
+        os.path.join(CONFIG_DIR, "games_database.json"),
+        os.path.join(os.path.dirname(__file__), "games_database.json"),
+        os.path.join(os.path.dirname(__file__), "games_database.json.template"),
     ]
     
     for db_path in db_paths:
         if os.path.exists(db_path):
             try:
                 with open(db_path) as f:
-                    return json.load(f)
+                    return json.load(f)  # Returns the list directly
             except Exception as e:
                 print(f"Warning: Could not load {db_path}: {e}")
     
-    # Default empty database
+    # Default empty list
     print("Warning: No games database found, using empty database")
-    return {"games": []}
+    return []
 
 def save_games(games):
     """Save games to database file"""
@@ -61,7 +61,7 @@ def save_games(games):
     
     try:
         with open(db_path, "w") as f:
-            json.dump(games, f, indent=2)
+            json.dump(games, f, indent=2)  # Save as list directly
     except Exception as e:
         print(f"Error: Could not save games database: {e}")
 

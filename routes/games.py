@@ -13,10 +13,8 @@ def log(msg):
 def handle_get_games(params):
     """GET /api/games - Returns list of all games"""
     log(f"[handle_get_games] called with params: {params}")
-    db = load_games_database()
-    log(f"[handle_get_games] loaded db: {db}")
-    games = db.get("games", [])
-    log(f"[handle_get_games] returning {len(games)} games")
+    games = load_games_database()
+    log(f"[handle_get_games] loaded {len(games)} games")
     return {
         "games": games,
         "count": len(games)
@@ -28,8 +26,7 @@ def handle_post_games(body):
     if not all(k in body for k in required):
         return {"error": "Missing required fields: id, name, launcher"}, 400
     
-    db = load_games_database()
-    games = db.get("games", [])
+    games = load_games_database()  # Now returns list
     
     if any(g["id"] == body["id"] for g in games):
         return {"error": "Game ID already exists"}, 400
@@ -56,29 +53,27 @@ def handle_launch_game(params):
     game_id = params.get("id", [None])[0]
     
     log(f"[handle_launch_game] game_id: {game_id}")
-    print(f"Launch request for game: {game_id}")
     
     if not game_id:
-        print("Error: No game ID provided")
+        log("Error: No game ID provided")
         return {"error": "Missing game id"}, 400
     
-    db = load_games_database()
-    games = db.get("games", [])
+    games = load_games_database()  # Now returns list
     game = next((g for g in games if g["id"] == game_id), None)
     
     if not game:
-        print(f"Error: Game not found: {game_id}")
+        log(f"Error: Game not found: {game_id}")
         return {"error": "Game not found"}, 404
     
     launcher_name = game.get("launcher")
-    print(f"Launcher name: {launcher_name}")
+    log(f"Launcher name: {launcher_name}")
     
     if not launcher_name:
-        print("Error: No launcher configured")
+        log("Error: No launcher configured")
         return {"error": "Invalid game data"}, 400
     
     if not launch_game(launcher_name):
-        print(f"Error: launch_game() returned False")
+        log(f"Error: launch_game() returned False")
         return {"error": "Failed to launch game"}, 500
     
     # Update last_played and playtime
@@ -90,7 +85,7 @@ def handle_launch_game(params):
     
     save_games(games)
     
-    print(f"Successfully launched: {game['name']}")
+    log(f"Successfully launched: {game['name']}")
     return {"status": "launching", "game": game["name"]}, 200
 
 def handle_get_status(params):
