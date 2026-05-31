@@ -4,11 +4,19 @@ Game management and launching
 """
 from datetime import datetime
 from config import load_games_database, save_games, load_config
+import sys
+
+def log(msg):
+    """Write to stderr so it shows in journalctl"""
+    print(msg, file=sys.stderr, flush=True)
 
 def handle_get_games(params):
     """GET /api/games - Returns list of all games"""
+    log(f"[handle_get_games] called with params: {params}")
     db = load_games_database()
+    log(f"[handle_get_games] loaded db: {db}")
     games = db.get("games", [])
+    log(f"[handle_get_games] returning {len(games)} games")
     return {
         "games": games,
         "count": len(games)
@@ -42,11 +50,12 @@ def handle_launch_game(params):
     """GET /launch?id=GAME_ID - Launch a game"""
     from hbs import launch_game
     
-    print(f"DEBUG: params type = {type(params)}")
-    print(f"DEBUG: params = {params}")
+    log(f"[handle_launch_game] params type: {type(params)}")
+    log(f"[handle_launch_game] params: {params}")
     
     game_id = params.get("id", [None])[0]
     
+    log(f"[handle_launch_game] game_id: {game_id}")
     print(f"Launch request for game: {game_id}")
     
     if not game_id:
