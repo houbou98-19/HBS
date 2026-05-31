@@ -5,7 +5,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ('../../../config.py', '.'),
-        ('../../../carousel_config.json.template', '.'),
+        ('../../carousel_config.json.template', '.'),
     ],
     hiddenimports=['pyglet', 'requests'],
     hookspath=[],
