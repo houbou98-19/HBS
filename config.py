@@ -4,7 +4,22 @@ HB System - Configuration Management
 import json
 import os
 
-CONFIG_DIR = os.path.expanduser("~/.hbs")
+def get_config_dir():
+    """Get platform-appropriate config directory with fallback"""
+    # Try Windows path first, then Linux
+    windows_path = os.path.expanduser("~/AppData/Roaming/HBS")
+    linux_path = os.path.expanduser("~/.hbs")
+    
+    # Return whichever exists, or default based on OS
+    if os.path.exists(windows_path):
+        return windows_path
+    elif os.path.exists(linux_path):
+        return linux_path
+    else:
+        # Default: Windows on Windows, Linux on others
+        return windows_path if os.name == 'nt' else linux_path
+
+CONFIG_DIR = get_config_dir()
 
 def load_config():
     """Load HBS configuration with bundled defaults"""
@@ -20,7 +35,8 @@ def load_config():
             print(f"Warning: Could not load bundled config: {e}")
     
     # Override with user config if it exists
-    user_path = os.path.join(CONFIG_DIR, "config.json")
+    config_dir = get_config_dir()
+    user_path = os.path.join(config_dir, "config.json")
     if os.path.exists(user_path):
         try:
             with open(user_path) as f:
@@ -34,19 +50,20 @@ def load_config():
 
 def load_games_database():
     """Load games database from local file or bundled template"""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
+    config_dir = get_config_dir()
+    os.makedirs(config_dir, exist_ok=True)
     
     db_paths = [
-        os.path.join(CONFIG_DIR, "games_database.json"),
-        os.path.join(os.path.dirname(__file__), "games_database.json"),
-        os.path.join(os.path.dirname(__file__), "games_database.json.template"),
+        os.path.join(config_dir, "games_database.json"),  # User database (platform-aware)
+        os.path.join(os.path.dirname(__file__), "games_database.json"),  # Local file
+        os.path.join(os.path.dirname(__file__), "games_database.json.template"),  # Bundled fallback
     ]
     
     for db_path in db_paths:
         if os.path.exists(db_path):
             try:
                 with open(db_path) as f:
-                    return json.load(f)  # Returns the list directly
+                    return json.load(f)
             except Exception as e:
                 print(f"Warning: Could not load {db_path}: {e}")
     
@@ -56,20 +73,23 @@ def load_games_database():
 
 def save_games(games):
     """Save games to database file"""
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    db_path = os.path.join(CONFIG_DIR, "games_database.json")
+    config_dir = get_config_dir()
+    os.makedirs(config_dir, exist_ok=True)
+    db_path = os.path.join(config_dir, "games_database.json")
     
     try:
         with open(db_path, "w") as f:
-            json.dump(games, f, indent=2)  # Save as list directly
+            json.dump(games, f, indent=2)
     except Exception as e:
         print(f"Error: Could not save games database: {e}")
 
 def load_carousel_config():
     """Load carousel configuration from file"""
+    config_dir = get_config_dir()
+    
     config_paths = [
-        os.path.join(CONFIG_DIR, "carousel_config.json"),
-        os.path.join(os.path.dirname(__file__), "carousel_config.json"),
+        os.path.join(config_dir, "carousel_config.json"),  # User location (platform-aware)
+        os.path.join(os.path.dirname(__file__), "carousel_config.json"),  # Bundled
     ]
     
     for config_path in config_paths:
@@ -82,12 +102,14 @@ def load_carousel_config():
             except Exception as e:
                 print(f"Warning: Could not load {config_path}: {e}")
     
-    # Default fallback
+    # Default fallback with platform-aware covers directory
+    covers_dir = os.path.join(config_dir, "covers")
+    
     print("Warning: No carousel config found, using defaults")
     return {
         "api_url": "http://localhost:5000",
         "steamgriddb_api_key": "",
-        "covers_dir": os.path.join(CONFIG_DIR, "covers")
+        "covers_dir": covers_dir
     }
 
 def get_version():
