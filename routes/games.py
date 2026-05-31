@@ -42,6 +42,9 @@ def handle_launch_game(params):
     """GET /launch?id=GAME_ID - Launch a game"""
     from hbs import launch_game
     
+    print(f"DEBUG: params type = {type(params)}")
+    print(f"DEBUG: params = {params}")
+    
     game_id = params.get("id", [None])[0]
     
     print(f"Launch request for game: {game_id}")
