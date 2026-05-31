@@ -167,10 +167,6 @@ class CarouselMenu(pyglet.window.Window):
         self.prev_index = 0
         self.y_offset = 100
         
-        # Title shine effect
-        self.title_shine_time = 0
-        self.title_shine_duration = 2.0  # seconds for full cycle
-        
         print(f"HB SYSTEM v{self.version}")
         print(f"API URL: {self.api_url}")
         print(f"Loaded {len(self.games)} games")
@@ -188,42 +184,25 @@ class CarouselMenu(pyglet.window.Window):
         self.draw_status()
     
     def draw_title(self):
-        """Draw HB SYSTEM title with glow effect matching splash page"""
-        import math
+        """Draw HB SYSTEM title with pre-rendered glow image"""
+        if not hasattr(self, '_title_glow_image'):
+            title_path = os.path.expanduser('~/.hbs/title_glow.png')
+            if os.path.exists(title_path):
+                self._title_glow_image = pyglet.image.load(title_path)
+            else:
+                # Fallback to text if image not found
+                self._title_glow_image = None
         
-        title_x = self.width // 2
-        title_y = self.height - 250 - self.y_offset
-        
-        # Calculate glow intensity that pulses subtly
-        glow_progress = (self.title_shine_time % self.title_shine_duration) / self.title_shine_duration
-        glow_intensity = math.sin(glow_progress * math.pi * 2) * 0.3 + 0.7  # Pulsates between 0.4 and 1.0
-        
-        # Draw glow layers (multiple semi-transparent copies for halo effect)
-        glow_color = (0, 255, 136, int(40 * glow_intensity))  # Green with pulsing alpha
-        for offset in [3, 6, 9]:
-            for angle_offset in [-1, 0, 1]:
-                glow = pyglet.text.Label(
-                    "HB SYSTEM",
-                    font_name="Press Start 2P",
-                    font_size=150,
-                    x=title_x + angle_offset,
-                    y=title_y + offset,
-                    anchor_x='center',
-                    color=glow_color
-                )
-                glow.draw()
-        
-        # Main bright title text
-        title = pyglet.text.Label(
-            "HB SYSTEM",
-            font_name="Press Start 2P",
-            font_size=150,
-            x=title_x,
-            y=title_y,
-            anchor_x='center',
-            color=(0, 255, 136, 255)
-        )
-        title.draw()
+        # Draw the glowing title image
+        if self._title_glow_image:
+            title_x = self.width // 2
+            title_y = self.height - 250 - self.y_offset
+            
+            sprite = pyglet.sprite.Sprite(self._title_glow_image)
+            # Center the sprite
+            sprite.x = title_x - self._title_glow_image.width // 2
+            sprite.y = title_y - self._title_glow_image.height // 2
+            sprite.draw()
         
         subtitle = pyglet.text.Label(
             "PERSONAL ARCADE",
@@ -494,9 +473,6 @@ def update(dt):
     menu.animation_time += dt
     if menu.animation_time > menu.animation_duration:
         menu.animation_time = menu.animation_duration
-    
-    # Update title shine effect
-    menu.title_shine_time += dt
 
 def main():
     """Start carousel menu"""
