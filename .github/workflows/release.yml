@@ -237,15 +237,14 @@ jobs:
           choco install wixtoolset -y
       
       - name: Update version in HBS config
+        shell: python
         run: |
-          python3 << 'PYTHON'
           import json
           with open('config.json') as f:
               config = json.load(f)
           config['version'] = '${{ needs.version.outputs.new-version }}'
           with open('config.json', 'w') as f:
               json.dump(config, f, indent=2)
-          PYTHON
       
       - name: Build HBS executable
         run: |
