@@ -196,12 +196,15 @@ class CarouselMenu(pyglet.window.Window):
         # Draw the glowing title image
         if self._title_glow_image:
             title_x = self.width // 2
-            title_y = self.height - 250 - self.y_offset
+            title_y = self.height - 200 - self.y_offset
             
             sprite = pyglet.sprite.Sprite(self._title_glow_image)
+            # Scale up the image
+            scale_factor = 1.8
+            sprite.scale = scale_factor
             # Center the sprite
-            sprite.x = title_x - self._title_glow_image.width // 2
-            sprite.y = title_y - self._title_glow_image.height // 2
+            sprite.x = title_x - (self._title_glow_image.width * scale_factor) // 2
+            sprite.y = title_y - (self._title_glow_image.height * scale_factor) // 2
             sprite.draw()
         
         subtitle = pyglet.text.Label(
@@ -209,7 +212,7 @@ class CarouselMenu(pyglet.window.Window):
             font_name="Press Start 2P",
             font_size=64,
             x=self.width // 2,
-            y=self.height - 350 - self.y_offset,
+            y=self.height - 420 - self.y_offset,
             anchor_x='center',
             color=(0, 170, 255, 255)
         )
