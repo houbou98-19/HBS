@@ -299,6 +299,7 @@ sudo systemctl restart hbs.service hbs-carousel.service
 - [x] Linux binary releases
 - [ ] Windows installer
 - [x] Carousel Title Shine
+- [ ] Launch Script Maker
 - [ ] Save state management
 - [ ] Game statistics dashboard
 - [ ] NFC tag integration (future)
