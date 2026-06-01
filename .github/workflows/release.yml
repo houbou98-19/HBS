@@ -268,8 +268,10 @@ jobs:
         run: |
           cd installer/windows
           mkdir build
+          mkdir build\fonts
           xcopy hbs\hbs-pkg build\hbs\ /E /I /Y
           xcopy carousel\carousel-pkg build\carousel\ /E /I /Y
+          copy ..\..\*Press*.ttf build\fonts\ 2>nul || echo "Font file not found, skipping"
       
       - name: Build MSI installer
         run: |

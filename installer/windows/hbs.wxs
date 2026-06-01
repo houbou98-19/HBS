@@ -14,6 +14,7 @@
             <ComponentRef Id="CarouselBinary" />
             <ComponentRef Id="ConfigFiles" />
             <ComponentRef Id="LauncherScript" />
+            <ComponentRef Id="FontComponent" />
             <ComponentRef Id="StartMenuShortcuts" />
         </Feature>
         
@@ -26,6 +27,8 @@
             <Directory Id="ProgramMenuFolder">
                 <Directory Id="ApplicationProgramsFolder" Name="HB System" />
             </Directory>
+            
+            <Directory Id="FontsFolder" />
         </Directory>
         
         <!-- Components -->
@@ -46,6 +49,14 @@
             
             <Component Id="LauncherScript" Guid="44444444-4444-4444-4444-444444444444">
                 <File Id="launcher.sh" Source="build\hbs\launcher.sh" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        
+        <!-- Font Component - installs to Windows Fonts folder -->
+        <DirectoryRef Id="FontsFolder">
+            <Component Id="FontComponent" Guid="77777777-7777-7777-7777-777777777777">
+                <File Id="PressStart2P.ttf" Source="build\fonts\PressStart2P-Regular.ttf" KeyPath="yes" />
+                <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows NT\CurrentVersion\Fonts" Name="Press Start 2P (TrueType)" Value="PressStart2P-Regular.ttf" Type="string" />
             </Component>
         </DirectoryRef>
         
