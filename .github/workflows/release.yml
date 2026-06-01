@@ -179,6 +179,8 @@ jobs:
           files: installer/linux/hbs/hbs-${{ needs.version.outputs.new-version }}.tar.gz
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
 
   build-carousel:
     needs: [version, detect-changes, generate-changelog]
@@ -214,6 +216,8 @@ jobs:
           files: installer/linux/carousel/carousel-${{ needs.version.outputs.new-version }}.tar.gz
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
 
   build-windows:
     name: Build Windows Installer
@@ -286,3 +290,5 @@ jobs:
           files: installer/windows/HBS-${{ needs.version.outputs.new-version }}.msi
           body: "${{ needs.generate-changelog.outputs.changelog }}"
           token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
