@@ -8,7 +8,9 @@ import time
 import json
 import os
 import sys
-from config import load_carousel_config
+from config import load_carousel_config, setup_logging
+
+logger = setup_logging("Carousel")
 
 def get_hbs_version(api_url):
     """Fetch HBS version from API"""
@@ -131,6 +133,12 @@ class CarouselMenu(pyglet.window.Window):
         self.animation_duration = 0.3  # seconds
         self.prev_index = 0
         self.y_offset = 100
+
+        self.games = load_games(self.api_url)
+        logger.info(f"Loaded {len(self.games)} games from API")
+        for game in self.games[:3]:
+            logger.info(f"Game - {game['name']}, Cover: {game.get('cover_path')}")
+
         
         print(f"HB SYSTEM v{self.version}")
         print(f"API URL: {self.api_url}")

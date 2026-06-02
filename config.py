@@ -1,6 +1,7 @@
 """
 HB System - Configuration Management
 """
+import logging
 import json
 import os
 
@@ -116,3 +117,19 @@ def get_version():
     """Get version from config"""
     config = load_config()
     return config.get("version", "unknown")
+
+def setup_logging(app_name="hbs"):
+    """Setup logging to file in config directory"""
+    config_dir = get_config_dir()
+    os.makedirs(config_dir, exist_ok=True)
+    
+    log_file = os.path.join(config_dir, f"{app_name}.log")
+    
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.DEBUG,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        filemode='a'
+    )
+    
+    return logging.getLogger(app_name)
