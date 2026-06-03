@@ -26,7 +26,7 @@ def handle_post_games(body):
     if not all(k in body for k in required):
         return {"error": "Missing required fields: id, name, launcher"}, 400
     
-    games = load_games_database()  # Now returns list
+    games = load_games_database()
     
     if any(g["id"] == body["id"] for g in games):
         return {"error": "Game ID already exists"}, 400
@@ -36,7 +36,8 @@ def handle_post_games(body):
         "name": body["name"],
         "launcher": body["launcher"],
         "playtime": 0,
-        "last_played": None
+        "last_played": None,
+        "cover_filename": body.get("cover_filename", "")  # Just filename, not full path
     })
     
     save_games(games)

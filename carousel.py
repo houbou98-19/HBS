@@ -23,13 +23,27 @@ def get_hbs_version(api_url):
         return "unknown"
 
 def load_games(api_url):
-    """Load games from HBS API"""
+    """Load games from HBS API and resolve cover paths based on OS"""
     try:
         response = requests.get(f"{api_url}/api/games", timeout=5)
         data = response.json()
-        return data.get("games", [])
+        games = data.get("games", [])
+        
+        # Resolve cover paths based on config
+        carousel_config = load_carousel_config()
+        covers_dir = carousel_config.get('covers_dir')
+        
+        for game in games:
+            cover_filename = game.get('cover_filename', '')
+            if cover_filename:
+                game['cover_path'] = os.path.join(covers_dir, cover_filename)
+            else:
+                game['cover_path'] = None
+        
+        logger.info(f"Loaded {len(games)} games, resolved cover paths to {covers_dir}")
+        return games
     except Exception as e:
-        print(f"Error loading games from {api_url}: {e}")
+        logger.error(f"Error loading games from {api_url}: {e}")
         return []
 
 def fetch_game_covers(api_url, api_key, covers_dir):

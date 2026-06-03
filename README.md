@@ -87,7 +87,7 @@ sudo bash install.sh
          "launcher": "pokemon-emerald.sh",
          "playtime": 0,
          "last_played": null,
-         "cover_path": "~/.hbs/covers/pokemon-emerald.png"
+         "cover_filename": "pokemon-emerald.png"
        }
      ]
    }
